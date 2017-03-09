@@ -1,0 +1,17 @@
+{
+    "domain": {
+        "name": "h5app.yunos.com",
+        "use_sdk": 1,
+        "version_code": 1,
+        "version": "1"
+    },
+    "pages": [
+        {
+            "uri": "page://h5app.yunos.com/h5app",
+            "content_path": "res/asset/index.html",
+            "main": true,
+            "type":"HTMLPage",
+            "icon": "res/asset/images/icon.png"
+        }
+    ]
+}

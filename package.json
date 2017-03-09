@@ -1,0 +1,49 @@
+{
+    "name": "cordova-yunos",
+    "version": "6.5.1-dev",
+    "description": "cordova-yunos release",
+    "main": "bin/templates/cordova/Api.js",
+    "repository": {
+        "type": "git",
+        "url": ""
+    },
+    "keywords": [
+        "cordova",
+        "yunos",
+        "apache"
+    ],
+    "scripts": {
+        "test": "npm run jshint && npm run test-unit",
+        "test-unit": "node node_modules/jasmine-node/lib/jasmine-node/cli.js --captureExceptions tests/spec/",
+        "jshint": "node node_modules/jshint/bin/jshint bin && node node_modules/jshint/bin/jshint tests"
+    },
+    "dependencies": {
+        "cordova-common": "^1.5.0",
+        "adm-zip": "^0.4.7",
+        "cordova-serve": "^1.0.0",
+        "nopt": "^3.0.6",
+        "q": "^1.4.1",
+        "shelljs": "^0.6.0"
+    },
+    "devDependencies": {
+        "jasmine-node": "~1",
+        "jshint": "^2.6.0",
+        "tmp": "^0.0.26"
+    },
+    "bundledDependencies": [
+        "cordova-common",
+        "adm-zip",
+        "cordova-serve",
+        "nopt",
+        "q",
+        "shelljs"
+    ],
+    "author": "Apache Software Foundation",
+    "contributors": [
+        {
+            "name": "Guangzhen Li",
+            "email": "guangzhen.li@alibaba.com"
+        }
+    ],
+    "license": "Apache-2.0"
+}
