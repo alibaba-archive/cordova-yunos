@@ -20,12 +20,10 @@
 var path = require('path');
 var Q = require('q');
 
-var YunOSProject = require('./lib/YunOSProject');
-
-var PluginManager = require('cordova-common').PluginManager;
-
-var CordovaLogger = require('cordova-common').CordovaLogger;
 var selfEvents = require('cordova-common').events;
+var CordovaLogger = require('cordova-common').CordovaLogger;
+var PluginManager = require('cordova-common').PluginManager;
+var YunOSProject = require('./lib/YunOSProject');
 
 var PLATFORM = 'yunos';
 
@@ -214,6 +212,9 @@ Api.prototype.addPlugin = function (plugin, installOptions) {
             return PluginManager.get(self.platform, self.locations, project)
                 .addPlugin(plugin, installOptions);
         }.bind(this))
+        .then(function() {
+            return require('./lib/prepare').updatePermissions.call(self);
+        })
         .thenResolve(true);
 };
 
@@ -241,6 +242,9 @@ Api.prototype.removePlugin = function (plugin, uninstallOptions) {
              return PluginManager.get(this.platform, this.locations, project)
                 .removePlugin(plugin, uninstallOptions);
         }.bind(this))
+        .then(function() {
+            return require('./lib/prepare').updatePermissions.call(self);
+        })
         .thenResolve(true);
 };
 

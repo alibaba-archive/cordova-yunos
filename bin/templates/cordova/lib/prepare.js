@@ -48,6 +48,7 @@ module.exports.prepare = function (cordovaProject, options) {
             self.locations.res), self.locations.manifest);
         updateSplashes(cordovaProject, path.relative(cordovaProject.root,
             self.locations.res), self.locations.manifest);
+        module.exports.updatePermissions.call(self);
     })
     .then(function () {
         events.emit('verbose', 'Prepared YunOS project successfully');
@@ -74,6 +75,22 @@ module.exports.clean = function (options) {
         cleanSplashes(projectRoot, projectConfig, path.relative(projectRoot, self.locations.res));
     });
 };
+
+
+module.exports.updatePermissions = function() {
+    var configParser = new ConfigParser(this.locations.configXml);
+    var permissions = [];
+    configParser.doc.findall('uses-permission').forEach(function(elt){
+        permissions.push(elt.attrib['yunos:name']);
+    });
+    var manifest = JSON.parse(fs.readFileSync(this.locations.manifest, 'utf-8'));
+    if (manifest.permission == undefined) {
+        manifest.permission = {};
+    }
+    manifest.permission.use_permission = permissions;
+    fs.writeFileSync(this.locations.manifest, JSON.stringify(manifest, null, 4), 'utf-8');
+}
+
 
 /**
  * Updates config files in project based on app's config.xml and config munge,
