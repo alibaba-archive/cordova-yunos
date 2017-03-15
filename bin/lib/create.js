@@ -27,6 +27,8 @@ var fs         = require('fs'),
     ROOT       = path.join(__dirname, '..', '..'),
     check_reqs = require('./check_reqs');
 
+var CordovaError = require('cordova-common').CordovaError;
+
 function copyJsAndLibrary(project_path, shared) {
     var cordovaLibPath = path.join(project_path,"CordovaLib");
     shjs.mkdir('-p', cordovaLibPath);
