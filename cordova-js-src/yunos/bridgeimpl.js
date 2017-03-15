@@ -49,9 +49,9 @@ module.exports = {
         // Register IPC listener from WebViewPrivate
         // Use WebViewPrivate IPC message to send init message to PluginManager
         try {
-            pluginManager = yunos.require(modulePath('src/PluginManager')).getInstance();
+            pluginManager = yunos.require(modulePath('CordovaLib/PluginManager')).getInstance();
             pluginManager.registerMsgListener(this.onBrowserMessageReceived);
-            pluginLoader = yunos.require(modulePath('src/PluginLoader'));
+            pluginLoader = yunos.require(modulePath('CordovaLib/PluginLoader'));
             pluginLoader.init();
         } catch(e) {
             console.log('Failed to init Domono bridge proxy'+ '::stack trace=' + e.stack);

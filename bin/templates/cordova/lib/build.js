@@ -53,12 +53,16 @@ module.exports.run = function(){
         //TODO: Integrate with YunOS CLI
         // Copy project files to build folder
         shjs.cp('-r', path.join(platformAppDir, 'manifest.json'), packageFolder);
-        shjs.cp('-rf', path.join(platformAppDir, 'src'), packageFolder);
+        shjs.cp('-rf', path.join(platformAppDir, 'CordovaLib', 'src'), path.join(packageFolder,'CordovaLib'));
         shjs.cp('-rf', path.join(platformAppDir, 'res'), packageFolder);
         shjs.cp('-rf', path.join(platformAppDir, 'libs'), packageFolder);
         shjs.cp('-rf', path.join(platformAppDir, 'spec'), packageFolder);
         shjs.cp('-rf', path.join(platformAppDir, 'test'), packageFolder);
-
+        fs.stat(path.join(platformAppDir, 'src'), function(err, stat) {
+            if (err === null) {
+                shjs.cp('-rf', path.join(platformAppDir, 'src'), packageFolder);
+            }
+        });
         // shjs.cp('-r', platformAppDir, platformBuildDir);
         // shjs.mv(path.join(platformBuildDir, 'src'), path.join(packageFile));
 
