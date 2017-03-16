@@ -51,24 +51,36 @@ let Plugin = lang.create({
         }
     },
 
+    // The event is fired when the page instance is created.
+    onCreate: function() {
+    },
+
+    // The event is fired when the page instance is started.
     onStart: function() {
-        //TODO
     },
 
-    onShow: function() {
-        //TODO
+    // The event is fired when the page instance is stoped.
+    onStop: function() {
     },
 
-    onHide: function() {
-        //TODO
+    // The method is called when the page instance receives message from other pages.
+    onLink: function(link) {
     },
 
-    onLink: function() {
-        //TODO
-    },
-
+    // The event is fired when the page instance is destroyed.
     onDestroy: function() {
-        //TODO
+    },
+
+    // The event is fired when the page instance is shown.
+    onShow: function() {
+    },
+
+    // The event is fired when the page instance is hidden.
+    onHide: function() {
+    },
+
+    // The event is fired when the page instance is requested to trim memory.
+    onTrimMemory: function() {
     }
 });
 

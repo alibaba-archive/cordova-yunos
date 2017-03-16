@@ -84,12 +84,12 @@ module.exports.updatePermissions = function() {
         permissions.push(elt.attrib['yunos:name']);
     });
     var manifest = JSON.parse(fs.readFileSync(this.locations.manifest, 'utf-8'));
-    if (manifest.permission == undefined) {
+    if (manifest.permission === undefined) {
         manifest.permission = {};
     }
     manifest.permission.use_permission = permissions;
     fs.writeFileSync(this.locations.manifest, JSON.stringify(manifest, null, 4), 'utf-8');
-}
+};
 
 
 /**

@@ -81,6 +81,17 @@ module.exports.run = function(argv){
             }
         });
     }).then(function() {
+        // Workaround for new adb tool
+        return spawn('adb', ['-host', 'shell', 'ypm', '-f', '-i', '/tmp/package/package'], {cwd: os.tmpdir()})
+        .progress(function(stdio) {
+            if (stdio.stderr) {
+              console.log(stdio.stderr);
+            }
+            if (stdio.stdout) {
+              console.log(stdio.stdout);
+            }
+        });
+    }).then(function() {
         var manifest = JSON.parse(fs.readFileSync(path.join(platformDir, 'manifest.json'), 'utf-8'));
         var uri = manifest.pages[0].uri;
         return spawn('adb', ['-host', 'shell', 'sendlink', uri, '--debug-brk'], {cwd: os.tmpdir()})

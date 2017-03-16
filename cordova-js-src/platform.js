@@ -33,10 +33,9 @@ module.exports = {
 
         channel.onNativeReady.fire();
 
-        // FIXME is this the right place to clobber pause/resume? I am guessing not
-        // FIXME pause/resume should be deprecated IN CORDOVA for pagevisiblity api
-        document.addEventListener('webkitvisibilitychange', function() {
-            if (document.webkitHidden) {
+        // Receive Pause/Resume events from W3C API instead of YunOS Page API.
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
                 channel.onPause.fire();
             }
             else {

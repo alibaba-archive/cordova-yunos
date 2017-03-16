@@ -888,7 +888,7 @@ function yunosExec (success, fail, service, action, args) {
     } catch (e) {
         console.log("Exception calling native with command :: " + service + " :: " + action  + " ::exception=" + e);
     }
-};
+}
 
 yunosExec.init = function() {
     yunosProxy.init();
@@ -1396,10 +1396,9 @@ module.exports = {
 
         channel.onNativeReady.fire();
 
-        // FIXME is this the right place to clobber pause/resume? I am guessing not
-        // FIXME pause/resume should be deprecated IN CORDOVA for pagevisiblity api
-        document.addEventListener('webkitvisibilitychange', function() {
-            if (document.webkitHidden) {
+        // Receive Pause/Resume events from W3C API instead of YunOS Page API.
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
                 channel.onPause.fire();
             }
             else {
@@ -1765,13 +1764,15 @@ utils.alert = function(msg) {
 define("cordova/yunos/bridgeimpl", function(require, exports, module) {
 
 // Workaround for yunos.require relative path
-function modulePath(path) {
+function modulePath(_path) {
     var pathname = location.pathname;
     var index = pathname.indexOf('/res/');
     var modulePath = '';
     if (index != -1) {
         var basePath = pathname.substr(0, index);
-        modulePath = basePath + '/' + path;
+        var path = yunos.require('path');
+        modulePath = path.join(basePath, _path);
+        modulePath = 'page:/' + modulePath;
     }
     return modulePath;
 }
@@ -1782,7 +1783,6 @@ function modulePath(path) {
 
 module.exports = {
     pluginManager: undefined,
-    pluginLoader: undefined,
     onBrowserMessageReceived: undefined,
     send: function(service, action, callbackId, args) {
         // TODO:
@@ -1796,8 +1796,6 @@ module.exports = {
         try {
             pluginManager = yunos.require(modulePath('CordovaLib/PluginManager')).getInstance();
             pluginManager.registerMsgListener(this.onBrowserMessageReceived);
-            pluginLoader = yunos.require(modulePath('CordovaLib/PluginLoader'));
-            pluginLoader.init();
         } catch(e) {
             console.log('Failed to init Domono bridge proxy'+ '::stack trace=' + e.stack);
         }
@@ -1811,12 +1809,12 @@ define("cordova/yunos/bridgeproxy", function(require, exports, module) {
 
 var cordova = require('cordova');
 
-var isDomono = yunos != undefined && yunos.require !== undefined;
+var isDomono = yunos !== undefined && yunos.require !== undefined;
 
 module.exports = {
     bridgeImpl: undefined,
     send: function(service, action, callbackId, args) {
-        if(this.checkBridge() == false) {
+        if(this.checkBridge() === false) {
             return;
         }
         bridgeImpl.send(service, action, callbackId, args);

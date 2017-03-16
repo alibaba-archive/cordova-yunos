@@ -20,7 +20,7 @@
 */
 let lang = require('caf/core/lang');
 let CallbackContext = require('./CallbackContext');
-let HashMap = require('./HashMap');
+let HashMap = require('./utils/HashMap');
 let Path = require ('path');
 let PluginResult = require('./PluginResult');
 
@@ -147,6 +147,48 @@ let PluginManager = lang.create({
         }
         this._retMsgListener(result, callbackId);
     },
+
+    callPluginsEvent: function(event, args) {
+        let keys = this._pluginMap.keySet();
+        for (key in keys) {
+            let plugin = this._pluginMap.get(keys[key]);
+            if (plugin !== null) {
+                plugin[event].call(plugin, args);
+            }
+        }
+    },
+
+    onCreate: function() {
+        this.callPluginsEvent('onCreate');
+    },
+
+    onStart: function() {
+        this.callPluginsEvent('onStart');
+    },
+
+    onStop: function() {
+        this.callPluginsEvent('onStop');
+    },
+
+    onLink: function(link) {
+        this.callPluginsEvent('onLink', link);
+    },
+
+    onDestroy: function() {
+        this.callPluginsEvent('onDestroy');
+    },
+
+    onShow: function() {
+        this.callPluginsEvent('onShow');
+    },
+
+    onHide: function() {
+        this.callPluginsEvent('onHide');
+    },
+
+    onTrimMemory: function() {
+        this.callPluginsEvent('onTrimMemory');
+    }
 });
 
 let sInstance = null;

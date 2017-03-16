@@ -8,7 +8,7 @@
     "pages": [
         {
             "uri": "page://h5app.yunos.com/h5app",
-            "content_path": "res/asset/index.html",
+            "content_path": "src/index.js",
             "main": true,
             "type":"HTMLPage",
             "icon": "res/asset/images/icon.png"

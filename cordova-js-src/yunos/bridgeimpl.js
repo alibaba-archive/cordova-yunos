@@ -26,7 +26,9 @@ function modulePath(path) {
     var modulePath = '';
     if (index != -1) {
         var basePath = pathname.substr(0, index);
-        modulePath = basePath + '/' + path;
+        var Path = yunos.require('path');
+        modulePath = Path.join(basePath, path);
+        modulePath = 'page:/' + modulePath;
     }
     return modulePath;
 }
@@ -37,7 +39,6 @@ function modulePath(path) {
 
 module.exports = {
     pluginManager: undefined,
-    pluginLoader: undefined,
     onBrowserMessageReceived: undefined,
     send: function(service, action, callbackId, args) {
         // TODO:
@@ -51,8 +52,6 @@ module.exports = {
         try {
             pluginManager = yunos.require(modulePath('CordovaLib/PluginManager')).getInstance();
             pluginManager.registerMsgListener(this.onBrowserMessageReceived);
-            pluginLoader = yunos.require(modulePath('CordovaLib/PluginLoader'));
-            pluginLoader.init();
         } catch(e) {
             console.log('Failed to init Domono bridge proxy'+ '::stack trace=' + e.stack);
         }
