@@ -93,6 +93,7 @@ let PluginManager = lang.create({
         let plugin = this.getPlugin(service);
         let callbackContext = new CallbackContext(callbackId);
         if (plugin === null) {
+            console.error('Plugin not founded');
             let result = new PluginResult(PluginResult.Status.CLASS_NOT_FOUND_EXCEPTION);
             callbackContext.sendPluginResult(result);
             return;

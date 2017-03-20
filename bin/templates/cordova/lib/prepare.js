@@ -84,10 +84,18 @@ module.exports.updatePermissions = function() {
         permissions.push(elt.attrib['yunos:name']);
     });
     var manifest = JSON.parse(fs.readFileSync(this.locations.manifest, 'utf-8'));
-    if (manifest.permission === undefined) {
-        manifest.permission = {};
+    if (manifest.domain.permission === undefined) {
+        manifest.domain.permission = {};
     }
-    manifest.permission.use_permission = permissions;
+    if (manifest.domain.permission.use_permission === undefined) {
+        manifest.domain.permission.use_permission = [];
+    }
+    for (var index in permissions) {
+        var permission = permissions[index];
+        if (!manifest.domain.permission.use_permission.includes(permission)) {
+            manifest.domain.permission.use_permission.push(permission);
+        }
+    }
     fs.writeFileSync(this.locations.manifest, JSON.stringify(manifest, null, 4), 'utf-8');
 };
 

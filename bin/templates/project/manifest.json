@@ -3,7 +3,13 @@
         "name": "h5app.yunos.com",
         "use_sdk": 1,
         "version_code": 1,
-        "version": "1"
+        "version": "1",
+        "permission": {
+            "use_permission": [
+                "MOBILE.permission.yunos.com",
+                "WIFI.permission.yunos.com"
+            ]
+         }
     },
     "pages": [
         {
