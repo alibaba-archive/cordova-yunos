@@ -194,6 +194,44 @@ function updateOrientation(value, manifest) {
 }
 
 /**
+ * Updates userAgent from project's configuration.
+ *
+ * @param   {ConfigParser}  platformConfig  A project's configuration
+ * @param   {Object}        manifest  Json object of manifest.json
+ */
+function updateUseragent(platformConfig, manifest) {
+    let appendUserAgent = platformConfig.getPreference('AppendUserAgent');
+    let overrideUserAgent = platformConfig.getPreference('OverrideUserAgent');
+
+    if (appendUserAgent !== '' || overrideUserAgent !== '') {
+        // ensure the existence of manifest.page.extension.web_app
+        if (manifest.pages[0].extension === undefined) {
+            manifest.pages[0].extension = {};
+            manifest.pages[0].extension.web_app = {};
+        } else if (manifest.pages[0].extension.web_app === undefined) {
+            manifest.pages[0].extension.web_app = {};
+        }
+        // write the appendUserAgent preference
+        if (appendUserAgent !== '') {
+            manifest.pages[0].extension.web_app.append_user_agent = appendUserAgent;
+        } else {
+            manifest.pages[0].extension.web_app.append_user_agent = undefined;
+        }
+        // write the overrideUserAgent preference
+        if (overrideUserAgent !== '') {
+            manifest.pages[0].extension.web_app.override_user_agent = overrideUserAgent;
+        } else {
+            manifest.pages[0].extension.web_app.override_user_agent = undefined;
+        }
+    } else if (manifest.pages[0].extension !== undefined
+        && manifest.pages[0].extension.web_app !== undefined) {
+        // update the userAgent preference if it remove from config.xml
+        manifest.pages[0].extension.web_app.append_user_agent = undefined;
+        manifest.pages[0].extension.web_app.override_user_agent = undefined;
+    }
+}
+
+/**
  * Updates project structure and manifest.json according to project's configuration.
  *
  * @param   {ConfigParser}  platformConfig  A project's configuration that will
@@ -226,6 +264,8 @@ function updateProjectAccordingTo(platformConfig, locations) {
     // fullscreen
     var fullscreen = (platformConfig.getPreference('fullscreen') == 'true');
     manifest.pages[0].display.fullscreen = fullscreen;
+    // useragent
+    updateUseragent(platformConfig, manifest);
 
     fs.writeFileSync(locations.manifest, JSON.stringify(manifest, null, 4), 'utf-8');
     events.emit('verbose', 'Wrote out YunOS manifest.');
