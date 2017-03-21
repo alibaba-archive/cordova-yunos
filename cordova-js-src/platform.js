@@ -19,6 +19,8 @@
  *
 */
 
+const BACK_KEYCODE = 27;
+
 module.exports = {
     id: 'yunos',
 
@@ -32,6 +34,28 @@ module.exports = {
         modulemapper.clobbers('cordova/exec/proxy', 'cordova.commandProxy');
 
         channel.onNativeReady.fire();
+
+        // Inject a listener for the backbutton on the document.
+        var backKeyEventListener = function(e) {
+            if (e.keyCode == BACK_KEYCODE) {
+                cordova.fireDocumentEvent('backbutton');
+                e.preventDefault();
+            }
+        };
+
+        var backButtonChannel = cordova.addDocumentEventHandler('backbutton');
+        backButtonChannel.onHasSubscribersChange = function() {
+            // If we just attached the first handler or detached the last handler,
+            // let native know we need to override the back button.
+            var isOverride = this.numHandlers === 1;
+            // Register key event in Domono mode.
+            // TODO: Receive backbutton event from page in agil-webview mode.
+            if (isOverride) {
+                document.addEventListener('keyup', backKeyEventListener);
+            } else {
+                document.removeEventListener('keyup', backKeyEventListener);
+            }
+        };
 
         // Receive Pause/Resume events from W3C API instead of YunOS Page API.
         document.addEventListener('visibilitychange', function() {

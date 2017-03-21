@@ -1382,6 +1382,8 @@ exports.reset();
 // file: /Users/guangzhen/Desktop/cordova/cordova-yunos/cordova-js-src/platform.js
 define("cordova/platform", function(require, exports, module) {
 
+const BACK_KEYCODE = 27;
+
 module.exports = {
     id: 'yunos',
 
@@ -1395,6 +1397,28 @@ module.exports = {
         modulemapper.clobbers('cordova/exec/proxy', 'cordova.commandProxy');
 
         channel.onNativeReady.fire();
+
+        // Inject a listener for the backbutton on the document.
+        var backKeyEventListener = function(e) {
+            if (e.keyCode == BACK_KEYCODE) {
+                cordova.fireDocumentEvent('backbutton');
+                e.preventDefault();
+            }
+        };
+
+        var backButtonChannel = cordova.addDocumentEventHandler('backbutton');
+        backButtonChannel.onHasSubscribersChange = function() {
+            // If we just attached the first handler or detached the last handler,
+            // let native know we need to override the back button.
+            var isOverride = this.numHandlers === 1;
+            // Register key event in Domono mode.
+            // TODO: Receive backbutton event from page in agil-webview mode.
+            if (isOverride) {
+                document.addEventListener('keyup', backKeyEventListener);
+            } else {
+                document.removeEventListener('keyup', backKeyEventListener);
+            }
+        };
 
         // Receive Pause/Resume events from W3C API instead of YunOS Page API.
         document.addEventListener('visibilitychange', function() {
@@ -1764,14 +1788,14 @@ utils.alert = function(msg) {
 define("cordova/yunos/bridgeimpl", function(require, exports, module) {
 
 // Workaround for yunos.require relative path
-function modulePath(_path) {
+function modulePath(path) {
     var pathname = location.pathname;
     var index = pathname.indexOf('/res/');
     var modulePath = '';
     if (index != -1) {
         var basePath = pathname.substr(0, index);
-        var path = yunos.require('path');
-        modulePath = path.join(basePath, _path);
+        var Path = yunos.require('path');
+        modulePath = Path.join(basePath, path);
         modulePath = 'page:/' + modulePath;
     }
     return modulePath;
