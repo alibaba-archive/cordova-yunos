@@ -48,16 +48,21 @@ module.exports = {
         return true;
     },
     onBrowserMessageReceived: function(result, callbackId) {
-        result = result || {};
-        var status = result.status || cordova.callbackStatus.ERROR;
-        var retValue = result.retValue || '';
-        var keepCallback = result.keepCallback || false;
-        var isSuccess = false;
-        if (status == cordova.callbackStatus.OK ||
-            status == cordova.callbackStatus.NO_RESULT) {
-            isSuccess = true;
+        function callback(result, callbackId) {
+            result = result || {};
+            var status = result.status || cordova.callbackStatus.ERROR;
+            var retValue = result.retValue || '';
+            var keepCallback = result.keepCallback || false;
+            var isSuccess = false;
+            if (status == cordova.callbackStatus.OK ||
+                status == cordova.callbackStatus.NO_RESULT) {
+                isSuccess = true;
+            }
+            cordova.callbackFromNative(callbackId, isSuccess, status,
+                                       [retValue], keepCallback);
         }
-        cordova.callbackFromNative(callbackId, isSuccess, status,
-                                   [retValue], keepCallback);
+        // Post result to handler instead of calling handler's callback directly
+        var TaskQueue = require('cordova/yunos/TaskQueue');
+        TaskQueue.post(new TaskQueue.Task(callback, result, callbackId));
     }
 };

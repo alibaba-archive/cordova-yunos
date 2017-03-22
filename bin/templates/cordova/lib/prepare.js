@@ -208,8 +208,8 @@ function updateOrientation(value, manifest) {
  * @param   {Object}        manifest  Json object of manifest.json
  */
 function updateUseragent(platformConfig, manifest) {
-    let appendUserAgent = platformConfig.getPreference('AppendUserAgent');
-    let overrideUserAgent = platformConfig.getPreference('OverrideUserAgent');
+    var appendUserAgent = platformConfig.getPreference('AppendUserAgent');
+    var overrideUserAgent = platformConfig.getPreference('OverrideUserAgent');
 
     if (appendUserAgent !== '' || overrideUserAgent !== '') {
         // ensure the existence of manifest.page.extension.web_app

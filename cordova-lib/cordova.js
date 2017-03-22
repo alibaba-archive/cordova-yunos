@@ -461,7 +461,7 @@ function uint8ToBase64(rawData) {
 
 });
 
-// file: /Users/guangzhen/Desktop/cordova/cordova-yunos/cordova-js-src/builder.js
+// file: /disk7/cordova-yunos/cordova-js-src/builder.js
 define("cordova/builder", function(require, exports, module) {
 
 /*
@@ -853,7 +853,7 @@ module.exports = channel;
 
 });
 
-// file: /Users/guangzhen/Desktop/cordova/cordova-yunos/cordova-js-src/exec.js
+// file: /disk7/cordova-yunos/cordova-js-src/exec.js
 define("cordova/exec", function(require, exports, module) {
 
 /*jslint sloppy:true, plusplus:true*/
@@ -1379,7 +1379,7 @@ exports.reset();
 
 });
 
-// file: /Users/guangzhen/Desktop/cordova/cordova-yunos/cordova-js-src/platform.js
+// file: /disk7/cordova-yunos/cordova-js-src/platform.js
 define("cordova/platform", function(require, exports, module) {
 
 const BACK_KEYCODE = 27;
@@ -1784,7 +1784,68 @@ utils.alert = function(msg) {
 
 });
 
-// file: /Users/guangzhen/Desktop/cordova/cordova-yunos/cordova-js-src/yunos/bridgeimpl.js
+// file: /disk7/cordova-yunos/cordova-js-src/yunos/TaskQueue.js
+define("cordova/yunos/TaskQueue", function(require, exports, module) {
+
+var resolvedPromise = typeof Promise === 'undefined' ? null : Promise.resolve();
+var nextTick = resolvedPromise ? function(fn) { resolvedPromise.then(fn); } : function(fn) { setTimeout(fn); };
+
+// Use a array to store the runnables to execute
+var gTasks = [];
+var gIsRunning = false;
+
+function pollingOnce() {
+    if (gTasks.length === 0) {
+        gIsRunning = false;
+        return;
+    }
+
+    var task = gTasks.shift();
+    task._callback.apply(null, task._args);
+
+    nextTick(pollingOnce);
+}
+
+// Fire a timer if the timer is not running
+function start() {
+    if (gIsRunning) {
+        return;
+    }
+    nextTick(pollingOnce);
+    gIsRunning = true;
+}
+
+function Task() {
+    // At leaset has a function for Task
+    if (arguments.length === 0) {
+        return;
+    }
+
+    var args = Array.prototype.slice.call(arguments);
+    this._callback = args[0];
+    // Pop the function
+    args.shift();
+    this._args = args;
+}
+
+function post(task) {
+    if (task instanceof Task === false) {
+        return false;
+    }
+
+    gTasks.push(task);
+    start();
+    return true;
+};
+
+module.exports = {
+    Task: Task,
+    post: post
+};
+
+});
+
+// file: /disk7/cordova-yunos/cordova-js-src/yunos/bridgeimpl.js
 define("cordova/yunos/bridgeimpl", function(require, exports, module) {
 
 // Workaround for yunos.require relative path
@@ -1828,7 +1889,7 @@ module.exports = {
 
 });
 
-// file: /Users/guangzhen/Desktop/cordova/cordova-yunos/cordova-js-src/yunos/bridgeproxy.js
+// file: /disk7/cordova-yunos/cordova-js-src/yunos/bridgeproxy.js
 define("cordova/yunos/bridgeproxy", function(require, exports, module) {
 
 var cordova = require('cordova');
@@ -1860,23 +1921,28 @@ module.exports = {
         return true;
     },
     onBrowserMessageReceived: function(result, callbackId) {
-        result = result || {};
-        var status = result.status || cordova.callbackStatus.ERROR;
-        var retValue = result.retValue || '';
-        var keepCallback = result.keepCallback || false;
-        var isSuccess = false;
-        if (status == cordova.callbackStatus.OK ||
-            status == cordova.callbackStatus.NO_RESULT) {
-            isSuccess = true;
+        function callback(result, callbackId) {
+            result = result || {};
+            var status = result.status || cordova.callbackStatus.ERROR;
+            var retValue = result.retValue || '';
+            var keepCallback = result.keepCallback || false;
+            var isSuccess = false;
+            if (status == cordova.callbackStatus.OK ||
+                status == cordova.callbackStatus.NO_RESULT) {
+                isSuccess = true;
+            }
+            cordova.callbackFromNative(callbackId, isSuccess, status,
+                                       [retValue], keepCallback);
         }
-        cordova.callbackFromNative(callbackId, isSuccess, status,
-                                   [retValue], keepCallback);
+        // Post result to handler instead of calling handler's callback directly
+        var TaskQueue = require('cordova/yunos/TaskQueue');
+        TaskQueue.post(new TaskQueue.Task(callback, result, callbackId));
     }
 };
 
 });
 
-// file: /Users/guangzhen/Desktop/cordova/cordova-yunos/cordova-js-src/yunos/pluginmanagerproxy.js
+// file: /disk7/cordova-yunos/cordova-js-src/yunos/pluginmanagerproxy.js
 define("cordova/yunos/pluginmanagerproxy", function(require, exports, module) {
 
 var bridgeProxy = require('cordova/yunos/bridgeproxy');

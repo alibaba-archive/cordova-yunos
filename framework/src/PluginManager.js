@@ -57,7 +57,6 @@ function hookRequire() {
         } else if (path === 'Log') {
             return _require(main, logModulePath);
         }
-
         return _require(this, path);
     };
 }
