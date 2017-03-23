@@ -20,6 +20,8 @@
 */
 
 var config;
+const Log = require('./Log');
+const TAG = 'ConfigHelper';
 
 function Config(data) {
     function loadPreferences(node) {
@@ -53,11 +55,21 @@ function Config(data) {
         return src;
     }
 
+    function loadName(node) {
+        let names = node.elements('name');
+        let retName;
+        names.each(function(name) {
+            retName = name;
+        });
+        return retName;
+    }
+
     let XML = require('./utils/jsxml').XML;
     let node = new XML(data);
     this.preferences = loadPreferences(node);
     this.features = loadFeatures(node);
     this.contentPath = loadContentPath(node);
+    this.name = loadName(node);
 }
 
 /**
@@ -95,12 +107,15 @@ function readConfig(success, error) {
         try {
             config = new Config(data);
         } catch (e) {
+            Log.E(TAG, 'Failed to read config.xml error:' + e);
             error(e);
             return;
         }
         success(config);
     } else {
-        error('config.xml not founded!');
+        const errStr = 'config.xml not founded';
+        Log.E(TAG, errStr);
+        error(errStr);
     }
 }
 

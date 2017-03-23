@@ -20,8 +20,10 @@
 */
 const CallbackContext = require('./CallbackContext');
 const HashMap = require('./utils/HashMap');
+const Log = require('./Log');
 const Path = require ('path');
 const PluginResult = require('./PluginResult');
+const TAG = 'PluginManager';
 
 function Entry(path, onload) {
     this.path = path;
@@ -29,6 +31,7 @@ function Entry(path, onload) {
 }
 
 let pluginModulePath = Path.join(__dirname, 'Plugin');
+let logModulePath = Path.join(__dirname, 'Log');
 
 // TODO:
 // Hook node module require
@@ -49,10 +52,10 @@ function hookRequire() {
         assert(typeof path === 'string', 'path must be a string');
         assert(path, 'missing path');
 
-        if (path.slice(0, 2) === ':/') {
-            return _require(main, './' + path.slice(2));
-        } else if (path == 'Plugin') {
+        if (path === 'Plugin') {
             return _require(main, pluginModulePath);
+        } else if (path === 'Log') {
+            return _require(main, logModulePath);
         }
 
         return _require(this, path);
@@ -60,7 +63,7 @@ function hookRequire() {
 }
 
 function instantiatePlugin(path) {
-    console.log('Instantiate Plugin: ' + path);
+    Log.V(TAG, 'Instantiate Plugin: ' + path);
     let plugin = null;
     try {
         // As plugin path start with src, need add ../ prefix.
@@ -68,7 +71,7 @@ function instantiatePlugin(path) {
         let Plugin = require(path);
         plugin = new Plugin();
     } catch (e) {
-        console.log('Filed to Instantiate ' + path + ': ' + e);
+        Log.E(TAG, 'Filed to Instantiate ' + path + ': ' + e);
     }
     return plugin;
 }
@@ -84,6 +87,7 @@ class PluginManager {
     }
 
     constructor() {
+        Log.V(TAG, 'Constructor called');
         // Plugin service name and instance map
         this._pluginMap = new HashMap();
         // Plugin service name and path map
@@ -98,6 +102,7 @@ class PluginManager {
 
     // Init PluginManager when load new web page.
     init() {
+        Log.V(TAG, 'Init plugins');
         // Send onStop and onDestroy event to plugins.
         this.onStop();
         this.onDestroy();
@@ -109,19 +114,23 @@ class PluginManager {
     // Create plugins objects that have onload set.
     startupPlugins() {
         let keys = this._entryMap.keySet();
+        Log.D(TAG, 'Start load startup plugins');
         keys.forEach(function(key) {
             var entry = this._entryMap.get(key);
             if (entry !== null && entry.onload === true) {
+                Log.D(TAG, 'Load Plugin:', entry.path);
                 this.getPlugin(keys[key]);
             }
         }.bind(this));
+        Log.D(TAG, 'End load startup plugins');
     }
 
     exec(service, action, callbackId, args) {
+        Log.D(TAG, 'exec:', service, action, callbackId, args);
         let plugin = this.getPlugin(service);
         let callbackContext = new CallbackContext(callbackId);
         if (plugin === null) {
-            console.error('Plugin not founded');
+            Log.E(TAG, 'Plugin', service, 'not founded');
             let result = new PluginResult(PluginResult.Status.CLASS_NOT_FOUND_EXCEPTION);
             callbackContext.sendPluginResult(result);
             return;
@@ -129,15 +138,17 @@ class PluginManager {
         try {
             let wasValidAction = plugin.execute(action, callbackContext, args);
             if (!wasValidAction) {
+                Log.E(TAG, 'Invalid Action');
                 let result = new PluginResult(PluginResult.Status.INVALID_ACTION);
                 callbackContext.sendPluginResult(result);
             }
         } catch (e) {
-            console.error('Invalid action:' + service + '+' + action);
+            Log.E(TAG, 'Invalid action:' + service + '+' + action);
         }
     }
 
     addService(service, path, onload) {
+        Log.V(TAG, 'Add new plugin:', service, path, onload);
         let entry = new Entry(path, onload);
         this._entryMap.put(service, entry);
     }
@@ -150,8 +161,8 @@ class PluginManager {
                 return null;
             }
             plugin = instantiatePlugin(entry.path);
-            plugin.privateInitialize(service);
             if (plugin !== null) {
+                plugin.privateInitialize(service);
                 this._pluginMap.put(service, plugin);
             }
         }
@@ -159,8 +170,9 @@ class PluginManager {
     }
 
     registerMsgListener(listener) {
+        Log.V(TAG, 'Set message listener');
         if (this._retMsgListener !== null) {
-            console.error('PluginManager: Message listener has been reset');
+            Log.D(TAG, 'Message listener has been reset');
         }
         this._retMsgListener = listener;
     }
@@ -171,15 +183,17 @@ class PluginManager {
         // 2. For webview mode, Encode result as json string.
         // 3. Send result via RendererIPC
         if (this._retMsgListener === null) {
-            console.error('No Message Listener registered');
+            Log.E(TAG, 'No Message Listener registered');
             return;
         }
+        Log.V(TAG, 'Send plugin result for', callbackId);
         this._retMsgListener(result, callbackId);
     }
 
     callPluginsEvent(event, args) {
         let keys = this._pluginMap.keySet();
         keys.forEach(function(key) {
+            Log.V(TAG, 'Events:', event, 'received for:', key);
             let plugin = this._pluginMap.get(key);
             if (plugin !== null) {
                 plugin[event].call(plugin, args);

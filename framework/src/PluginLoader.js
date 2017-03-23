@@ -20,14 +20,16 @@
 */
 const configHelper = require('./ConfigHelper');
 const pluginManager = require('./PluginManager').getInstance();
+const Log = require('./Log');
+const TAG = 'PluginLoader';
 
 module.exports = {
     init: function() {
+        Log.V(TAG, 'Start loading plugins');
         function error(err) {
-            console.log('Read config.xml error: ' + err);
         }
         function success(config) {
-            console.log('Read config.xml succeed, start parsing:');
+            Log.V(TAG, 'Read config.xml succeed, start parsing:');
             let features = config.features || [];
             features.forEach(function(feature) {
                 let service = feature.name;
@@ -42,6 +44,8 @@ module.exports = {
                         onload = param.value === 'true'? true : false;
                     }
                 });
+                Log.V(TAG, 'Found Plugin:', 'name=' + service, 'path=' + path,
+                        'onload=' + onload);
                 pluginManager.addService(service, path, onload);
             });
             pluginManager.init();

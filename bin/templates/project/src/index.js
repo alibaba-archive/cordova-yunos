@@ -24,9 +24,12 @@ let page = require('caf/page');
 let path = require('path');
 let configHelper = require('../CordovaLib/ConfigHelper');
 let pluginManager = require('../CordovaLib/PluginManager').getInstance();
+let Log = require('../CordovaLib/Log');
 
 page.instance.on('create', function() {
     function success(config) {
+        // Set log name and level
+        Log.setLogLevel(config.name, config.getPreferenceValue('LogLevel'));
         // Add default yunos core plugin
         pluginManager.addService('CoreYunOS', 'CordovaLib/CoreYunOSDomono', true);
         // Initialize custom plugins
