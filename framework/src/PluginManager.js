@@ -24,9 +24,9 @@ let HashMap = require('./utils/HashMap');
 let Path = require ('path');
 let PluginResult = require('./PluginResult');
 
-function Entry(path, run) {
+function Entry(path, onload) {
     this.path = path;
-    this.run = run;
+    this.onload = onload;
 }
 
 let pluginModulePath = Path.join(__dirname, 'Plugin');
@@ -84,9 +84,31 @@ let PluginManager = lang.create({
         this._entryMap = new HashMap();
 
         this._retMsgListener = null;
+
         hookRequire();
         // TODO:
         // Register RendererIPC message receiver.
+    },
+
+    // Init PluginManager when load new web page.
+    init: function() {
+        // Send onStop and onDestroy event to plugins.
+        this.onStop();
+        this.onDestroy();
+        // Clear plugin instances
+        this._pluginMap.clear();
+        this.startupPlugins();
+    },
+
+    // Create plugins objects that have onload set.
+    startupPlugins: function() {
+        let keys = this._entryMap.keySet();
+        keys.forEach(function(key) {
+            var entry = this._entryMap.get(key);
+            if (entry !== null && entry.onload === true) {
+                this.getPlugin(keys[key]);
+            }
+        }.bind(this));
     },
 
     exec: function(service, action, callbackId, args) {
@@ -109,8 +131,8 @@ let PluginManager = lang.create({
         }
     },
 
-    addService: function(service, path, run) {
-        let entry = new Entry(path, run);
+    addService: function(service, path, onload) {
+        let entry = new Entry(path, onload);
         this._entryMap.put(service, entry);
     },
 
@@ -122,7 +144,7 @@ let PluginManager = lang.create({
                 return null;
             }
             plugin = instantiatePlugin(entry.path);
-            plugin.initialize(service);
+            plugin.privateInitialize(service);
             if (plugin !== null) {
                 this._pluginMap.put(service, plugin);
             }
@@ -151,12 +173,12 @@ let PluginManager = lang.create({
 
     callPluginsEvent: function(event, args) {
         let keys = this._pluginMap.keySet();
-        for (key in keys) {
-            let plugin = this._pluginMap.get(keys[key]);
+        keys.forEach(function(key) {
+            let plugin = this._pluginMap.get(key);
             if (plugin !== null) {
                 plugin[event].call(plugin, args);
             }
-        }
+        }.bind(this));
     },
 
     onCreate: function() {

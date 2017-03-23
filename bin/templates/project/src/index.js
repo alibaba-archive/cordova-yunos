@@ -27,12 +27,15 @@ let pluginManager = require('../CordovaLib/PluginManager').getInstance();
 
 page.instance.on('create', function() {
     function success(config) {
-        // Initialize plugins
+        // Add default yunos core plugin
+        pluginManager.addService('CoreYunOS', 'CordovaLib/CoreYunOSDomono', true);
+        // Initialize custom plugins
         let pluginLoader = require('../CordovaLib/PluginLoader');
         pluginLoader.init();
         pluginManager.onCreate();
         // Load the content path with Domono mode
-        page.window.href = path.join('res', 'asset', config.contentPath);
+        let href = config.contentPath || 'index.html';
+        page.window.href = path.join('res', 'asset', href);
     }
     function error(msg) {
         console.log('Failed to get content src:');

@@ -28,23 +28,23 @@ module.exports = {
         }
         function success(config) {
             console.log('Read config.xml succeed, start parsing:');
-            let features = config.features;
-            for (i in features) {
-                let feature = features[i];
+            let features = config.features || [];
+            features.forEach(function(feature) {
                 let service = feature.name;
                 let path = '';
-                let run = false;
-                for (j in feature.params) {
-                    let param = feature.params[j];
+                let onload = false;
+                let params = feature.params || [];
+                params.forEach(function(param) {
                     let paramName = param.name;
                     if (paramName === 'yunos-package') {
                         path = param.value;
                     } else if (paramName === 'onload') {
-                        run = param.value === 'true'? true : false;
+                        onload = param.value === 'true'? true : false;
                     }
-                }
-                pluginManager.addService(service, path, run);
-            }
+                });
+                pluginManager.addService(service, path, onload);
+            });
+            pluginManager.init();
         }
         configHelper.readConfig(success, error);
     }

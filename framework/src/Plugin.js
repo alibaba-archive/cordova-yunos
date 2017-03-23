@@ -19,36 +19,49 @@
  *
 */
 
-let lang = require("caf/core/lang");
+let lang = require('caf/core/lang');
 
 let Plugin = lang.create({
+    // Constructor
     constructor: function() {
         this._serviceName = null;
     },
 
-    initialize: function(serviceName) {
+    // Called after plugin initialized.
+    privateInitialize: function(serviceName) {
         this._serviceName = serviceName;
+        this.initialize();
     },
 
+    // Plugin service name.
     getServiceName: function() {
         return this._serviceName;
     },
 
+    // Called from PluginManager.
     execute: function(action, callbackContext, args) {
         let func = this[action];
         if (typeof func === 'function') {
             try {
-                func.call(this, callbackContext, args);
+                let ret = func.call(this, callbackContext, args);
+                // Plugin actions are allwed to have no return value.
+                if (ret === undefined) {
+                    return true;
+                }
+                return ret;
             } catch(e) {
                 console.log('Call action:' + action + ' failed with error:' + e);
+                return false;
             }
-            // Action founded
-            return true;
         } else {
             console.error('No action:' + action + ' founded in ' + this._serviceName);
             // Action not founded in plugin
             return false;
         }
+    },
+
+    // Custom init for plugins.
+    initialize: function() {
     },
 
     // The event is fired when the page instance is created.
