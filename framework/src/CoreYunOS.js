@@ -19,18 +19,17 @@
  *
 */
 
-let lang = require('caf/core/lang');
-let Plugin = require('./Plugin');
+const Plugin = require('./Plugin');
 
-let CoreYunOS = lang.extend(Plugin, {
-    constructor: function() {
-        CoreYunOS.superclass.constructor.apply(this, arguments);
-    },
-
-    initialize: function() {
-        CoreYunOS.superclass.initialize.apply(this, arguments);
+class CoreYunOS extends Plugin {
+    constructor() {
+        super();
     }
-});
+
+    initialize() {
+        super.initialize();
+    }
+}
 
 module.exports = CoreYunOS;
 

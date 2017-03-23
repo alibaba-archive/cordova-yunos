@@ -18,11 +18,10 @@
  * under the License.
  *
 */
-let lang = require('caf/core/lang');
-let CallbackContext = require('./CallbackContext');
-let HashMap = require('./utils/HashMap');
-let Path = require ('path');
-let PluginResult = require('./PluginResult');
+const CallbackContext = require('./CallbackContext');
+const HashMap = require('./utils/HashMap');
+const Path = require ('path');
+const PluginResult = require('./PluginResult');
 
 function Entry(path, onload) {
     this.path = path;
@@ -76,8 +75,15 @@ function instantiatePlugin(path) {
 
 // TODO:
 // Use RendererIPC to send/receive message between renderer.
-let PluginManager = lang.create({
-    constructor: function() {
+class PluginManager {
+    static getInstance() {
+        if (!this.instance) {
+            this.instance = new PluginManager();
+        }
+        return this.instance;
+    }
+
+    constructor() {
         // Plugin service name and instance map
         this._pluginMap = new HashMap();
         // Plugin service name and path map
@@ -88,20 +94,20 @@ let PluginManager = lang.create({
         hookRequire();
         // TODO:
         // Register RendererIPC message receiver.
-    },
+    }
 
     // Init PluginManager when load new web page.
-    init: function() {
+    init() {
         // Send onStop and onDestroy event to plugins.
         this.onStop();
         this.onDestroy();
         // Clear plugin instances
         this._pluginMap.clear();
         this.startupPlugins();
-    },
+    }
 
     // Create plugins objects that have onload set.
-    startupPlugins: function() {
+    startupPlugins() {
         let keys = this._entryMap.keySet();
         keys.forEach(function(key) {
             var entry = this._entryMap.get(key);
@@ -109,9 +115,9 @@ let PluginManager = lang.create({
                 this.getPlugin(keys[key]);
             }
         }.bind(this));
-    },
+    }
 
-    exec: function(service, action, callbackId, args) {
+    exec(service, action, callbackId, args) {
         let plugin = this.getPlugin(service);
         let callbackContext = new CallbackContext(callbackId);
         if (plugin === null) {
@@ -129,14 +135,14 @@ let PluginManager = lang.create({
         } catch (e) {
             console.error('Invalid action:' + service + '+' + action);
         }
-    },
+    }
 
-    addService: function(service, path, onload) {
+    addService(service, path, onload) {
         let entry = new Entry(path, onload);
         this._entryMap.put(service, entry);
-    },
+    }
 
-    getPlugin: function(service) {
+    getPlugin(service) {
         let plugin = this._pluginMap.get(service);
         if (plugin === null) {
             let entry = this._entryMap.get(service);
@@ -150,16 +156,16 @@ let PluginManager = lang.create({
             }
         }
         return plugin;
-    },
+    }
 
-    registerMsgListener: function(listener) {
+    registerMsgListener(listener) {
         if (this._retMsgListener !== null) {
             console.error('PluginManager: Message listener has been reset');
         }
         this._retMsgListener = listener;
-    },
+    }
 
-    sendPluginResult: function(result, callbackId) {
+    sendPluginResult(result, callbackId) {
         // TODO:
         // 1. Use message queue
         // 2. For webview mode, Encode result as json string.
@@ -169,9 +175,9 @@ let PluginManager = lang.create({
             return;
         }
         this._retMsgListener(result, callbackId);
-    },
+    }
 
-    callPluginsEvent: function(event, args) {
+    callPluginsEvent(event, args) {
         let keys = this._pluginMap.keySet();
         keys.forEach(function(key) {
             let plugin = this._pluginMap.get(key);
@@ -179,48 +185,39 @@ let PluginManager = lang.create({
                 plugin[event].call(plugin, args);
             }
         }.bind(this));
-    },
+    }
 
-    onCreate: function() {
+    onCreate() {
         this.callPluginsEvent('onCreate');
-    },
+    }
 
-    onStart: function() {
+    onStart() {
         this.callPluginsEvent('onStart');
-    },
+    }
 
-    onStop: function() {
+    onStop() {
         this.callPluginsEvent('onStop');
-    },
+    }
 
-    onLink: function(link) {
+    onLink(link) {
         this.callPluginsEvent('onLink', link);
-    },
+    }
 
-    onDestroy: function() {
+    onDestroy() {
         this.callPluginsEvent('onDestroy');
-    },
+    }
 
-    onShow: function() {
+    onShow() {
         this.callPluginsEvent('onShow');
-    },
+    }
 
-    onHide: function() {
+    onHide() {
         this.callPluginsEvent('onHide');
-    },
+    }
 
-    onTrimMemory: function() {
+    onTrimMemory() {
         this.callPluginsEvent('onTrimMemory');
     }
-});
+}
 
-let sInstance = null;
-
-let getInstance = function() {
-    if (!sInstance) {
-        sInstance = new PluginManager();
-    }
-    return sInstance;
-};
-
-module.exports.getInstance = getInstance;
+module.exports = PluginManager;

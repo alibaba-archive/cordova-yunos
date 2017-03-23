@@ -19,9 +19,7 @@
  *
 */
 
-let lang = require("caf/core/lang");
-
-let Status = {
+const Status = {
     NO_RESULT: 0,
     OK: 1,
     CLASS_NOT_FOUND_EXCEPTION: 2,
@@ -34,16 +32,13 @@ let Status = {
     ERROR: 9
 };
 
-let PluginResult = lang.create({
-    status: Status.NO_RESULT,
-    retValue: '',
-    keepCallback: false,
-    constructor: function(status_, retValue_) {
+class PluginResult {
+    constructor(status_, retValue_) {
         this.status = status_;
         this.retValue = retValue_;
         this.keepCallback = false;
     }
-});
+}
 
 module.exports = PluginResult;
 module.exports.Status = Status;

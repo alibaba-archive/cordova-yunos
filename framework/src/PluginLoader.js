@@ -18,8 +18,8 @@
  * under the License.
  *
 */
-let configHelper = require('./ConfigHelper');
-let pluginManager = require('./PluginManager').getInstance();
+const configHelper = require('./ConfigHelper');
+const pluginManager = require('./PluginManager').getInstance();
 
 module.exports = {
     init: function() {

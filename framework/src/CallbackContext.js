@@ -19,28 +19,27 @@
  *
 */
 
-let lang = require('caf/core/lang');
-let PluginManager = require('./PluginManager');
-let PluginResult = require('./PluginResult');
+const PluginResult = require('./PluginResult');
 
-let CallbackContext = lang.create({
-    constructor: function(callbackId) {
+class CallbackContext {
+    constructor(callbackId) {
         this._callbackId = callbackId;
-    },
+    }
 
-    success: function(retValue) {
+    success(retValue) {
         let pluginResult = new PluginResult(PluginResult.Status.OK, retValue);
         this.sendPluginResult(pluginResult);
-    },
+    }
 
-    error: function(errorMsg) {
+    error(errorMsg) {
         let pluginResult = new PluginResult(PluginResult.Status.ERROR, errorMsg);
         this.sendPluginResult(pluginResult);
-    },
+    }
 
-    sendPluginResult: function(result) {
+    sendPluginResult(result) {
+        const PluginManager = require('./PluginManager');
         PluginManager.getInstance().sendPluginResult(result, this._callbackId);
     }
-});
+}
 
 module.exports = CallbackContext;

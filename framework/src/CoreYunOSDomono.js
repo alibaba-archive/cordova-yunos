@@ -19,18 +19,17 @@
  *
 */
 
-let lang = require('caf/core/lang');
-let CoreYunOS = require('./CoreYunOS');
+const CoreYunOS = require('./CoreYunOS');
 
-let CoreYunOSDomono = lang.extend(CoreYunOS, {
-    constructor: function() {
-        CoreYunOSDomono.superclass.constructor.apply(this, arguments);
-    },
-
-    initialize: function() {
-        CoreYunOSDomono.superclass.initialize.apply(this, arguments);
+class CoreYunOSDomono extends CoreYunOS {
+    constructor() {
+        super();
     }
-});
+
+    initialize() {
+        super.initialize();
+    }
+}
 
 module.exports = CoreYunOSDomono;
 

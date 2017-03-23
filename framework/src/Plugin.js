@@ -19,27 +19,25 @@
  *
 */
 
-let lang = require('caf/core/lang');
-
-let Plugin = lang.create({
+class Plugin {
     // Constructor
-    constructor: function() {
+    constructor() {
         this._serviceName = null;
-    },
+    }
 
     // Called after plugin initialized.
-    privateInitialize: function(serviceName) {
+    privateInitialize(serviceName) {
         this._serviceName = serviceName;
         this.initialize();
-    },
+    }
 
     // Plugin service name.
-    getServiceName: function() {
+    getServiceName() {
         return this._serviceName;
-    },
+    }
 
     // Called from PluginManager.
-    execute: function(action, callbackContext, args) {
+    execute(action, callbackContext, args) {
         let func = this[action];
         if (typeof func === 'function') {
             try {
@@ -58,43 +56,43 @@ let Plugin = lang.create({
             // Action not founded in plugin
             return false;
         }
-    },
+    }
 
     // Custom init for plugins.
-    initialize: function() {
-    },
+    initialize() {
+    }
 
     // The event is fired when the page instance is created.
-    onCreate: function() {
-    },
+    onCreate() {
+    }
 
     // The event is fired when the page instance is started.
-    onStart: function() {
-    },
+    onStart() {
+    }
 
     // The event is fired when the page instance is stoped.
-    onStop: function() {
-    },
+    onStop() {
+    }
 
     // The method is called when the page instance receives message from other pages.
-    onLink: function(link) {
-    },
+    onLink(link) {
+    }
 
     // The event is fired when the page instance is destroyed.
-    onDestroy: function() {
-    },
+    onDestroy() {
+    }
 
     // The event is fired when the page instance is shown.
-    onShow: function() {
-    },
+    onShow() {
+    }
 
     // The event is fired when the page instance is hidden.
-    onHide: function() {
-    },
+    onHide() {
+    }
 
     // The event is fired when the page instance is requested to trim memory.
-    onTrimMemory: function() {
+    onTrimMemory() {
     }
-});
+}
 
 module.exports = Plugin;
