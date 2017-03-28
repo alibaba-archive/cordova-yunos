@@ -21,25 +21,22 @@
 
 var cordova = require('cordova');
 
-var isDomono = yunos !== undefined && yunos.require !== undefined;
-
 module.exports = {
     bridgeImpl: undefined,
+
     send: function(service, action, callbackId, args) {
         if(this.checkBridge() === false) {
             return;
         }
         bridgeImpl.send(service, action, callbackId, args);
     },
+
     init: function() {
-        if (isDomono) {
-            bridgeImpl = require('cordova/yunos/bridgeimpl');
-        } else {
-            //TODO: Bridge Impl for WebView
-        }
-        bridgeImpl.onBrowserMessageReceived = this.onBrowserMessageReceived;
+        bridgeImpl = require('cordova/yunos/bridgeimpl');
+        bridgeImpl.onNodeMessageReceived = this.onNodeMessageReceived;
         bridgeImpl.init();
     },
+
     checkBridge: function() {
         if (bridgeImpl === undefined) {
             console.error('Bridge not implemented');
@@ -47,7 +44,8 @@ module.exports = {
         }
         return true;
     },
-    onBrowserMessageReceived: function(result, callbackId) {
+
+    onNodeMessageReceived: function(result, callbackId) {
         function callback(result, callbackId) {
             result = result || {};
             var status = result.status || cordova.callbackStatus.ERROR;

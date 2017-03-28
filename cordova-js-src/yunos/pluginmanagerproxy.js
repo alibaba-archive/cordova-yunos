@@ -76,6 +76,7 @@ module.exports = {
             bridgeProxy.send(service, action, callbackId, args);
         }
     },
+
     init: function() {
         bridgeProxy.init();
     }

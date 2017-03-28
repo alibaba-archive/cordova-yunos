@@ -78,8 +78,6 @@ function instantiatePlugin(path) {
     return plugin;
 }
 
-// TODO:
-// Use RendererIPC to send/receive message between renderer.
 class PluginManager {
     static getInstance() {
         if (!this.instance) {
@@ -94,12 +92,8 @@ class PluginManager {
         this._pluginMap = new HashMap();
         // Plugin service name and path map
         this._entryMap = new HashMap();
-
         this._retMsgListener = null;
-
         hookRequire();
-        // TODO:
-        // Register RendererIPC message receiver.
     }
 
     // Init PluginManager when load new web page.
@@ -179,11 +173,8 @@ class PluginManager {
         this._retMsgListener = listener;
     }
 
+    // TODO: Use message queue if needed
     sendPluginResult(result, callbackId) {
-        // TODO:
-        // 1. Use message queue
-        // 2. For webview mode, Encode result as json string.
-        // 3. Send result via RendererIPC
         if (this._retMsgListener === null) {
             Log.E(TAG, 'No Message Listener registered');
             return;

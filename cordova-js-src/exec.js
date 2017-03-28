@@ -43,13 +43,14 @@ function yunosExec (success, fail, service, action, args) {
     args = args || [];
     var callbackId = service + cordova.callbackId++;
 
-    if (typeof success === "function" || typeof fail === "function") {
+    if (typeof success === 'function' || typeof fail === 'function') {
         cordova.callbacks[callbackId] = {success: success, fail: fail};
     }
     try {
         yunosProxy.exec(service, action, callbackId, args);
     } catch (e) {
-        console.log("Exception calling native with command :: " + service + " :: " + action  + " ::exception=" + e);
+        console.log('Exception calling native with command :: '
+                + service + ' :: ' + action  + ' ::exception=' + e);
     }
 }
 

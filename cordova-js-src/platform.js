@@ -61,8 +61,7 @@ module.exports = {
         document.addEventListener('visibilitychange', function() {
             if (document.hidden) {
                 channel.onPause.fire();
-            }
-            else {
+            } else {
                 channel.onResume.fire();
             }
         }, false);

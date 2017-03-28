@@ -19,41 +19,83 @@
  *
 */
 
-// Workaround for yunos.require relative path
-function modulePath(path) {
-    var pathname = location.pathname;
-    var index = pathname.indexOf('/res/');
-    var modulePath = '';
-    if (index != -1) {
-        var basePath = pathname.substr(0, index);
-        var Path = yunos.require('path');
-        modulePath = Path.join(basePath, path);
-        modulePath = 'page:/' + modulePath;
-    }
-    return modulePath;
-}
-
-// TODO:
-// To support agil-webview usage, we need re-implement send and init metnod, and do not
-// use PluginManager directly, use IPC message instead.
+var isDomono = yunos !== undefined && yunos.require !== undefined;
+var base64 = require('cordova/base64');
+var utils = require('cordova/utils');
 
 module.exports = {
     pluginManager: undefined,
-    onBrowserMessageReceived: undefined,
+    onNodeMessageReceived: undefined,
+
     send: function(service, action, callbackId, args) {
-        // TODO:
-        // Use WebViewPrivate IPC instead.
+        // If args is not provided, default to an empty array
+        args = args || [];
         pluginManager.exec(service, action, callbackId, args);
     },
+
     init: function() {
-        // TODO:
-        // Register IPC listener from WebViewPrivate
-        // Use WebViewPrivate IPC message to send init message to PluginManager
+        if (isDomono === true) {
+            this.initDomono();
+        } else {
+            this.initAgilWebView();
+        }
+    },
+
+    initDomono: function() {
+        // Workaround for yunos.require relative path
+        function modulePath(path) {
+            var pathname = location.pathname;
+            var index = pathname.indexOf('/res/');
+            var modulePath = '';
+            if (index != -1) {
+                var basePath = pathname.substr(0, index);
+                var Path = yunos.require('path');
+                modulePath = Path.join(basePath, path);
+                modulePath = 'page:/' + modulePath;
+            }
+            return modulePath;
+        }
         try {
             pluginManager = yunos.require(modulePath('CordovaLib/PluginManager')).getInstance();
-            pluginManager.registerMsgListener(this.onBrowserMessageReceived);
+            pluginManager.registerMsgListener(this.onNodeMessageReceived);
         } catch(e) {
             console.log('Failed to init Domono bridge proxy'+ '::stack trace=' + e.stack);
         }
+    },
+
+    initAgilWebView: function() {
+        pluginManager = {};
+        pluginManager.exec = function(service, action, callbackId, args) {
+            if (window._cordovaNodeBridge === undefined) {
+                console.error('No _cordovaNodeBridge founded');
+                return;
+            }
+            // Process any ArrayBuffers in the args into a string.
+            for (let i in args) {
+                if (utils.typeName(args[i]) === 'ArrayBuffer') {
+                    args[i] = base64.fromArrayBuffer(args[i]);
+                }
+            }
+            var argsJson = JSON.stringify(args);
+            window._cordovaNodeBridge.exec(service, action, callbackId, argsJson);
+        }
+    },
+
+    // Used only for agil-webview mode, will be called from node.
+    onNodeMessageReceivedAgilWebView: function(result, callbackId) {
+        if (this.onNodeMessageReceived === undefined) {
+            console.error('No onNodeMessageReceived founded.');
+            return;
+        }
+        var resultJson = {};
+        result = result || '';
+        try {
+            resultJson = JSON.parse(result);
+        } catch(e) {
+            console.error('Parse node return message failed:');
+            console.error(e);
+            return;
+        }
+        this.onNodeMessageReceived(resultJson, callbackId);
     }
 };

@@ -19,6 +19,9 @@
  *
 */
 
+const Log = require('./Log');
+const TAG = 'PluginResult';
+
 const Status = {
     NO_RESULT: 0,
     OK: 1,
@@ -37,6 +40,17 @@ class PluginResult {
         this.status = status_;
         this.retValue = retValue_;
         this.keepCallback = false;
+    }
+
+    toString() {
+        let retStr = '';
+        try {
+            retStr = JSON.stringify(this);
+        } catch (e) {
+            Log.E(TAG, 'Failed to convert PluginResult to JSON string.');
+            Log.E(TAG, e);
+        }
+        return retStr;
     }
 }
 

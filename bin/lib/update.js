@@ -23,11 +23,11 @@ var Q      = require('q'),
     shell = require('shelljs');
 
 module.exports.help = function () {
-    console.log("WARNING : Make sure to back up your project before updating!");
-    console.log("Usage: update PathToProject ");
-    console.log("    PathToProject : The path the project you would like to update.");
-    console.log("examples:");
-    console.log("    update C:\\Users\\anonymous\\Desktop\\MyProject");
+    console.log('WARNING : Make sure to back up your project before updating!');
+    console.log('Usage: update PathToProject ');
+    console.log('    PathToProject : The path the project you would like to update.');
+    console.log('examples:');
+    console.log('    update C:\\Users\\anonymous\\Desktop\\MyProject');
 };
 
 module.exports.run = function (argv) {

@@ -1,0 +1,4 @@
+{
+    "validateQuoteMarks": "'",
+    "excludeFiles": ["node_modules/**", "cordova-js-src/builder.js", "cordova-lib/**", "tests/**"]
+}
