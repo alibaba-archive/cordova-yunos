@@ -32,6 +32,7 @@ function Entry(path, onload) {
 
 let pluginModulePath = Path.join(__dirname, 'Plugin');
 let logModulePath = Path.join(__dirname, 'Log');
+let workerBasePath = Path.join(__dirname, 'worker');
 
 // TODO:
 // Hook node module require
@@ -56,6 +57,8 @@ function hookRequire() {
             return _require(main, pluginModulePath);
         } else if (path === 'Log') {
             return _require(main, logModulePath);
+        } else if (path === 'WorkerPool' || path === 'Task') {
+            return _require(main, Path.join(workerBasePath, path));
         }
         return _require(this, path);
     };

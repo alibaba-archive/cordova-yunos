@@ -30,11 +30,11 @@ channel.createSticky('onCordovaInfoReady');
 channel.waitForInitialization('onCordovaInfoReady');
 
 /**
- * This represents the mobile device, and provides properties for inspecting the model, version, UUID of the
+ * This represents the mobile worker, and provides properties for inspecting the model, version, UUID of the
  * phone, etc.
  * @constructor
  */
-function Device() {
+function Worker() {
     this.available = false;
     this.platform = null;
     this.version = null;
@@ -70,14 +70,14 @@ function Device() {
 }
 
 /**
- * Get device info
+ * Get worker info
  *
  * @param {Function} successCallback The function to call when the heading data is available
  * @param {Function} errorCallback The function to call when there is an error getting the heading data. (OPTIONAL)
  */
-Device.prototype.getInfo = function(successCallback, errorCallback) {
-    argscheck.checkArgs('fF', 'Device.getInfo', arguments);
-    exec(successCallback, errorCallback, "Device", "getDeviceInfo", []);
+Worker.prototype.getInfo = function(successCallback, errorCallback) {
+    argscheck.checkArgs('fF', 'Worker.getInfo', arguments);
+    exec(successCallback, errorCallback, 'Worker', 'getWorkerInfo', []);
 };
 
-module.exports = new Device();
+module.exports = new Worker();
