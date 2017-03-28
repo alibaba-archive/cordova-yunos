@@ -54,6 +54,24 @@ describe('api methods', function () {
         expect(api.locations.cordovaJsSrc).toBe('cordova-js-src');
     }
 
+    it('spec#0 API check', function(done) {
+        // Check Api functions
+        expect(typeof Api).toBe('function');
+        expect(typeof Api.createPlatform).toBe('function');
+        expect(typeof Api.updatePlatform).toBe('function');
+        // Check Api prototype
+        var api = new Api();
+        expect(typeof api.getPlatformInfo).toBe('function');
+        expect(typeof api.prepare).toBe('function');
+        expect(typeof api.addPlugin).toBe('function');
+        expect(typeof api.removePlugin).toBe('function');
+        expect(typeof api.build).toBe('function');
+        expect(typeof api.run).toBe('function');
+        expect(typeof api.clean).toBe('function');
+        expect(typeof api.requirements).toBe('function');
+        done();
+    });
+
     it('spec#1 constructor', function(done) {
         var api = new Api();
         checkProperty(api);
@@ -62,21 +80,13 @@ describe('api methods', function () {
 
     it('spec#2 getPlatformInfo', function(done) {
         var api = new Api();
+        api._config = 'fake_config';
         var result = api.getPlatformInfo();
         expect(result.name).toBe("yunos");
         expect(result.root).toBe(path.join(ROOT, 'bin/templates'));
         expect(result.locations instanceof Object).toBe(true);
-        expect(result.locations.root).toBe(path.join(ROOT, 'bin/templates'));
-        expect(result.locations.www).toBe(path.join(ROOT, 'bin/templates/res/asset'));
-        expect(result.locations.res).toBe(path.join(ROOT, 'bin/templates/res'));
-        expect(result.locations.platformWww).toBe(path.join(ROOT, 'bin/templates/platform_www'));
-        expect(result.locations.configXml).toBe(path.join(ROOT, 'bin/templates/res/default/config.xml'));
-        expect(result.locations.defaultConfigXml).toBe(path.join(ROOT, 'bin/templates/cordova/defaults.xml'));
-        expect(result.locations.strings).toBe(path.join(ROOT, 'bin/templates/res/default/strings.json'));
-        expect(result.locations.manifest).toBe(path.join(ROOT, 'bin/templates/manifest.json'));
-        expect(result.locations.build).toBe(path.join(ROOT, 'bin/templates/build'));
-        expect(result.locations.cordovaJs).toBe('bin/templates/project/assets/www/cordova.js');
-        expect(result.locations.cordovaJsSrc).toBe('cordova-js-src');
+        expect(typeof result.version.version).toBe('string');
+        expect(result.projectConfig).toBe('fake_config');
         done();
     });
 

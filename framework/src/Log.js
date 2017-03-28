@@ -40,6 +40,9 @@ function generateArgs(args) {
 
 class Log {
     static setLogLevel(appName, level) {
+        Log.APP_NAME = appName + ':';
+        level = level || '';
+        console.log('myapp:' + level);
         switch (level) {
             case 'VERBOSE':
                 Log.LOG_LEVEL = VERBOSE;
@@ -54,12 +57,12 @@ class Log {
                 Log.LOG_LEVEL = WARN;
                 break;
             case 'ERROR':
+            case '':
                 Log.LOG_LEVEL = ERROR;
                 break;
             default:
                 log.E(APP_NAME, 'Unknown loglevel:' + level);
         }
-        Log.APP_NAME = appName + ':';
     }
 
     static V() {
