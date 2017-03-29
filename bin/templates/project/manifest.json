@@ -17,7 +17,8 @@
             "content_path": "src/index.js",
             "main": true,
             "type":"HTMLPage",
-            "icon": "res/asset/images/icon.png"
+            "icon": "res/default/icon.png",
+            "title": "__VAR_APP_NAME__"
         }
     ]
 }

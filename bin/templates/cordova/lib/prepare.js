@@ -80,7 +80,7 @@ module.exports.clean = function (options) {
 module.exports.updatePermissions = function() {
     var configParser = new ConfigParser(this.locations.configXml);
     var permissions = [];
-    configParser.doc.findall('uses-permission').forEach(function(elt){
+    configParser.doc.findall('uses-permission').forEach(function(elt) {
         permissions.push(elt.attrib['yunos:name']);
     });
     var manifest = JSON.parse(fs.readFileSync(this.locations.manifest, 'utf-8'));
@@ -256,8 +256,7 @@ function updateProjectAccordingTo(platformConfig, locations) {
     manifest.domain.name = platformConfig.packageName();
     // page uri
     manifest.pages[0].uri = 'page://' + platformConfig.packageName() + '/' + platformConfig.name();
-    // page title
-    manifest.pages[0].title = platformConfig.name();
+
     // versions
     var version = platformConfig.version();
     var versionCode = default_versionCode(version);
@@ -306,34 +305,42 @@ function updateSplashes(cordovaProject, platformResourcesDir, manifestPath) {
     }
 
     var defaultSplash;
+    var yunosSplashes = {};
     splashes.forEach(function(splash) {
-        // TODO: should support more density splash image
-        if (!splash.width && !splash.height) {
+        if (!splash.density) {
             if (!defaultSplash) {
                 defaultSplash = splash.src;
             } else {
                 events.emit('verbose', 'Found extra default splash: ' + splash.src +
                     ' (ignoring in favor of ' + defaultSplash + ')');
             }
+        } else {
+            yunosSplashes[splash.density] = splash.src;
         }
     });
-    if (!defaultSplash) {
-        events.emit('verbose', 'Not found valid splash image in config.xml');
-        return;
-    }
-
-    // Get splash file name
-    var filename = path.basename(defaultSplash);
 
     // Copy it to yunos package
     // TODO: should delete another duplicate item if splash image is under www
     var resourceMap = {};
-    resourceMap[path.join(platformResourcesDir, 'default', filename)] = defaultSplash;
+    var fileName;
+    for (var density in yunosSplashes) {
+        fileName = 'splashScreen.' + yunosSplashes[density].split('.').pop();
+        var targetPath = path.join(platformResourcesDir, density, fileName);
+        var sourcePath = getSourcePath(platformResourcesDir, yunosSplashes[density]);
+        resourceMap[targetPath] = sourcePath;
+    }
+    if (defaultSplash) {
+        fileName = 'splashScreen.' + defaultSplash.split('.').pop();
+        var targetPath = path.join(platformResourcesDir, 'default', fileName);
+        var sourcePath = getSourcePath(platformResourcesDir, defaultSplash);
+        resourceMap[targetPath] = sourcePath;
+    }
+    events.emit('verbose', 'Updating splashes at ' + platformResourcesDir);
     FileUpdater.updatePaths(resourceMap, {rootDir: cordovaProject.root}, logFileOp);
 
     // Update manifest.json
     var manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
-    manifest.pages[0].splash = path.join('res', 'default', filename);
+    manifest.pages[0].splash = fileName;
     fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 4), 'utf-8');
     events.emit('verbose', 'Updating manifest.json for splash.');
 }
@@ -343,63 +350,90 @@ function cleanSplashes(projectRoot, projectConfig, platformResourcesDir) {
 
 function updateIcons(cordovaProject, platformResourcesDir, manifestDir) {
     var icons = cordovaProject.projectConfig.getIcons('yunos');
-
     // if there are no icon elements in config.xml
     if (icons.length === 0) {
         events.emit('verbose', 'This app does not have launcher icons defined');
         return;
     }
 
-    var yunos_icons;
-    var default_icon;
+    var yunosIcons = {};
+    var defaultIcon;
+    // http://developer.android.com/design/style/iconography.html
+    var sizeToDensityMap = {
+        36: 'ldpi',
+        48: 'mdpi',
+        72: 'hdpi',
+        96: 'xhdpi',
+        144: 'xxhdpi',
+        192: 'xxxhdpi'
+    };
+    // find the best matching icon for a given density or size
+    // @output yunosIcons
+    var parseIcon = function(icon, iconSize) {
+        // do I have a platform icon for that density already
+        var density = icon.density || sizeToDensityMap[iconSize];
+        if (!density) {
+            events.emit('verbose', 'invalid icon defition ( or unsupported size)');
+            return;
+        }
+        var previous = yunosIcons[density];
+        if (previous && previous.platform) {
+            return;
+        }
+        yunosIcons[density] = icon.src;
+    };
 
     // iterate over all icon elements to find the default icon and call parseIcon
     // TODO: Support different devices
-    for (var i=0; i<icons.length; i++) {
-        var icon = icons[i];
+    icons.forEach(function(icon) {
         var size = icon.width;
         if (!size) {
             size = icon.height;
         }
         if (!size && !icon.density) {
-            if (default_icon) {
-                events.emit('verbose', 'Found extra default icon: ' + icon.src + ' (ignoring in favor of ' + default_icon.src + ')');
+            if (defaultIcon) {
+                events.emit('verbose', 'Found extra default icon: ' + icon.src + ' (ignoring in favor of ' + defaultIcon.src + ')');
             } else {
-                default_icon = icon;
+                defaultIcon = icon.src;
             }
         } else {
-            if (yunos_icons) {
-                events.emit('verbose', 'Found extra YunOS icon: ' + icon.src + ' (ignoring in favor of ' + yunos_icons.src + ')');
-            } else {
-                yunos_icons = icon;
-            }
+            parseIcon(icon, size);
         }
-    }
+    });
 
+    // The source paths for icons and splashes are relative to
+    // project's config.xml location, so we use it as base path.
     var resourceMap = {};
-    var source;
     var fileName;
-    if (yunos_icons !== undefined) {
-        source = yunos_icons.src;
-    } else if (default_icon !== undefined) {
-        source = default_icon.src;
-    } else {
-        events.emit('verbose', 'No icon provided.');
+    for (var density in yunosIcons) {
+        fileName = 'icon.' + yunosIcons[density].split('.').pop();
+        var targetPath = path.join(platformResourcesDir, density, fileName);
+        var sourcePath = getSourcePath(platformResourcesDir, yunosIcons[density]);
+        resourceMap[targetPath] = sourcePath;
     }
-
-    if (source !== undefined) {
-        fileName = 'icon.' + source.split('.').pop();
-        resourceMap[path.join(platformResourcesDir, 'default', fileName)] = source;
-        events.emit('verbose', 'Updating icons at ' + platformResourcesDir);
-        FileUpdater.updatePaths(
-            resourceMap, { rootDir: cordovaProject.root }, logFileOp);
-
-        // Update manifest.json
-        var manifest = JSON.parse(fs.readFileSync(manifestDir, 'utf-8'));
-        manifest.pages[0].icon = path.join('res', 'default', fileName);
-        fs.writeFileSync(manifestDir, JSON.stringify(manifest, null, 4), 'utf-8');
-        events.emit('verbose', 'Updating manifest.json for icon.');
+    if (defaultIcon) {
+        fileName = 'icon.' + defaultIcon.split('.').pop();
+        var defaultTargetPath = path.join(platformResourcesDir, 'default', fileName);
+        var sourcePath = getSourcePath(platformResourcesDir, defaultIcon);
+        resourceMap[defaultTargetPath] = sourcePath;
     }
+    events.emit('verbose', 'Updating icons at ' + platformResourcesDir);
+    FileUpdater.updatePaths(resourceMap, { rootDir: cordovaProject.root }, logFileOp);
+
+    // Update manifest.json
+    var manifest = JSON.parse(fs.readFileSync(manifestDir, 'utf-8'));
+    manifest.pages[0].icon = path.join(fileName);
+    fs.writeFileSync(manifestDir, JSON.stringify(manifest, null, 4), 'utf-8');
+    events.emit('verbose', 'Updating manifest.json for icon.');
+}
+
+function getSourcePath(platformResourcesDir, iconPath) {
+    var iconPathValue = iconPath.split('/').slice(1);
+    var sourcePath = platformResourcesDir;
+    iconPathValue.forEach(function(item) {
+        sourcePath = path.join(sourcePath, item);
+    });
+    return sourcePath;
 }
 
 function cleanIcons(projectRoot, projectConfig, platformResourcesDir) {

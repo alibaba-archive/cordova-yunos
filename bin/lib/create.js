@@ -98,6 +98,19 @@ function setShellFatal(value, func) {
     shjs.config.fatal = oldVal;
 }
 
+function updateAppName(project_path, app_name) {
+    // update page title to string.json
+    var filePath = path.join(project_path, 'res', 'en-US', 'string.json');
+    var stringJson = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    stringJson.APP_NAME = app_name;
+    fs.writeFileSync(filePath, JSON.stringify(stringJson, null, 4), 'utf-8');
+
+    filePath = path.join(project_path, 'res', 'zh-CN', 'string.json');
+    stringJson = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    stringJson.APP_NAME = app_name;
+    fs.writeFileSync(filePath, JSON.stringify(stringJson, null, 4), 'utf-8');
+}
+
 /**
  * Test whether a package name is acceptable for use as an YunOS project.
  * Returns a promise, fulfilled if the package name is acceptable; rejected
@@ -174,8 +187,8 @@ module.exports.create = function(project_path, config, options, events) {
         setShellFatal(true, function() {
             // copy cordova.js
             copyJsAndLibrary(project_path, options&&options.link);
-
             copyScripts(project_path);
+            updateAppName(project_path, project_name);
             events.emit('log', generateDoneMessage('create'));
         });
     }).thenResolve(project_path);
