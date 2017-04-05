@@ -32,15 +32,14 @@ exports.cleanProject = function(){
         console.error('Please make sure you meet the software requirements in order to clean an YunOS cordova project');
         process.exit(2);
     }
-    
+
     console.log('Cleaning YunOS project');
     try {
         if (fs.existsSync(platformBuildDir)) {
-            shjs.rm('-r', platformBuildDir);
+            shjs.rm('-rf', platformBuildDir);
         }
-    }
-    catch(err) {
-        console.log('could not remove '+platformBuildDir+' : '+err.message);
+    } catch(err) {
+        console.log('could not remove ' + platformBuildDir + ' : ' + err.message);
     }
 };
 

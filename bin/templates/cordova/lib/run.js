@@ -10,7 +10,7 @@
        with the License.  You may obtain a copy of the License at
 
          http://www.apache.org/licenses/LICENSE-2.0
-    
+
        Unless required by applicable law or agreed to in writing,
        software distributed under the License is distributed on an
        "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -19,93 +19,118 @@
        under the License.
 */
 
-var fs = require('fs'),
-    nopt  = require('nopt'),
-    os = require('os'),
-    path = require('path'),
-    shjs = require('shelljs'),
-    spawn = require('cordova-common').superspawn.spawn,
-    url = require('url'),
-    Q = require('q');
+/* jshint loopfunc:true */
 
-var platformDir       = path.join('platforms', 'yunos'),
-    platformBuildDir = path.join(platformDir, 'build'),
-    packageFile      = path.join(platformBuildDir, 'package');
+var path  = require('path'),
+    build = require('./build'),
+    emulator = require('./emulator'),
+    device   = require('./device'),
+    Q = require('q'),
+    events = require('cordova-common').events;
 
-module.exports.help = function(argv){
-    console.log('Usage: cordova run yunos');
-    console.log('Run will install the package to YunOS device.');
-};
+function getInstallTarget(runOptions) {
+    var installTarget;
+    if (runOptions.target) {
+        installTarget = runOptions.target;
+    } else if (runOptions.device) {
+        installTarget = '--device';
+    } else if (runOptions.emulator) {
+        installTarget = '--emulator';
+    }
 
-module.exports.run = function(argv){
-    //TODO replace to use YunOS CLI to install and run.
+    return installTarget;
+}
+
+/**
+ * Runs the application on a device if available. If no device is found, it will
+ *   use a started emulator. If no started emulators are found it will attempt
+ *   to start an avd. If no avds are found it will error out.
+ *
+ * @param   {Object}  runOptions  various run/build options. See Api.js build/run
+ *   methods for reference.
+ *
+ * @return  {Promise}
+ */
+ module.exports.run = function(runOptions) {
+    var self = this;
+    var installTarget = getInstallTarget(runOptions);
+
     return Q()
     .then(function() {
-        return spawn('adb', ['-host', 'shell', 'rm', '-rf', '/tmp/package'], {cwd: os.tmpdir()})
-        .progress(function(stdio) {
-            if (stdio.stderr) {
-              console.log(stdio.stderr);
-            }
-            if (stdio.stdout) {
-              console.log(stdio.stdout);
-            }
-        });
+        if (!installTarget) {
+            // no target given, deploy to device if available, otherwise use the emulator.
+            return device.list()
+            .then(function(device_list) {
+                if (device_list.length > 0) {
+                    events.emit('warn', 'No target specified, deploying to device \'' + device_list[0] + '\'.');
+                    installTarget = device_list[0];
+                } else {
+                    events.emit('warn', 'No target specified and no devices found, deploying to emulator');
+                    installTarget = '--emulator';
+                }
+            });
+        }
     }).then(function() {
-        return spawn('adb', ['-host', 'shell', 'mkdir', '/tmp/package'], {cwd: os.tmpdir()})
-        .progress(function(stdio) {
-            if (stdio.stderr) {
-              console.log(stdio.stderr);
+        if (installTarget == '--device') {
+            return device.resolveTarget(null);
+        } else if (installTarget == '--emulator') {
+            // Give preference to any already started emulators. Else, start one.
+            return emulator.list_started()
+            .then(function(started) {
+                return started && started.length > 0 ? started[0] : emulator.start();
+            }).then(function(emulatorId) {
+                return emulator.resolveTarget(emulatorId);
+            });
+        }
+        // They specified a specific device/emulator ID.
+        return device.list()
+        .then(function(devices) {
+            if (devices.indexOf(installTarget) > -1) {
+                return device.resolveTarget(installTarget);
             }
-            if (stdio.stdout) {
-              console.log(stdio.stdout);
-            }
+            return emulator.list_started()
+            .then(function(started_emulators) {
+                if (started_emulators.indexOf(installTarget) > -1) {
+                    return emulator.resolveTarget(installTarget);
+                }
+                return emulator.list_images()
+                .then(function(avds) {
+                    // if target emulator isn't started, then start it.
+                    for (var avd in avds) {
+                        if (avds[avd].name == installTarget) {
+                            return emulator.start(installTarget)
+                            .then(function(emulatorId) {
+                                return emulator.resolveTarget(emulatorId);
+                            });
+                        }
+                    }
+                    return Q.reject('Target \'' + installTarget + '\' not found, unable to run project');
+                });
+            });
         });
-    }).then(function() {
-        return spawn('adb', ['-host', 'push', packageFile, '/tmp/package'], {stdio: 'pipe'})
-        .progress(function(stdio) {
-            if (stdio.stderr) {
-              console.log(stdio.stderr);
+    }).then(function(resolvedTarget) {
+        return build.run.call(runOptions)
+        .then(function(buildResults) {
+            if (resolvedTarget.isEmulator) {
+                return emulator.wait_for_boot(resolvedTarget.target)
+                .then(function () {
+                    return emulator.install(resolvedTarget, buildResults);
+                });
             }
-            if (stdio.stdout) {
-              console.log(stdio.stdout);
-            }
+            return device.install(resolvedTarget, buildResults);
         });
-    }).then(function() {
-        return spawn('adb', ['-host', 'shell', 'ypm', '-f', '-i', '/tmp/package'], {cwd: os.tmpdir()})
-        .progress(function(stdio) {
-            if (stdio.stderr) {
-              console.log(stdio.stderr);
-            }
-            if (stdio.stdout) {
-              console.log(stdio.stdout);
-            }
-        });
-    }).then(function() {
-        // Workaround for new adb tool
-        return spawn('adb', ['-host', 'shell', 'ypm', '-f', '-i', '/tmp/package/package'], {cwd: os.tmpdir()})
-        .progress(function(stdio) {
-            if (stdio.stderr) {
-              console.log(stdio.stderr);
-            }
-            if (stdio.stdout) {
-              console.log(stdio.stdout);
-            }
-        });
-    }).then(function() {
-        var manifest = JSON.parse(fs.readFileSync(path.join(platformDir, 'manifest.json'), 'utf-8'));
-        var uri = manifest.pages[0].uri;
-        return spawn('adb', ['-host', 'shell', 'sendlink', uri, '--debug-brk'], {cwd: os.tmpdir()})
-        .progress(function(stdio) {
-            if (stdio.stderr) {
-              console.log(stdio.stderr);
-            }
-            if (stdio.stdout) {
-              console.log(stdio.stdout);
-            }
-        });
-    }).then(function() {
-      // workaround cordova issue, do not store config.xml file under project folder.
-      // https://issues.apache.org/jira/browse/CB-6414
-      shjs.rm('-rf', packageFile);
     });
+};
+
+module.exports.help = function() {
+    console.log('Usage: ' + path.relative(process.cwd(), process.argv[1]) + ' [options]');
+    console.log('Build options :');
+    console.log('    --debug : Builds project in debug mode');
+    console.log('    --release : Builds project in release mode');
+    console.log('    --nobuild : Runs the currently built project without recompiling');
+    console.log('Deploy options :');
+    console.log('    --device : Will deploy the built project to a device');
+    console.log('    --emulator : Will deploy the built project to an emulator if one exists');
+    console.log('    --target=<target_id> : Installs to the target with the specified id.');
+    process.exit(0);
 };

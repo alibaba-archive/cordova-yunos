@@ -350,7 +350,7 @@ Api.prototype.clean = function(cleanOptions) {
  *   objects for current platform.
  */
 Api.prototype.requirements = function() {
-    return require('./lib/check_reqs').check_all();
+    return require('./lib/check_reqs').checkAll();
 };
 
 module.exports = Api;

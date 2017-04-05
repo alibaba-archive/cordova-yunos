@@ -122,6 +122,16 @@ describe("create methods", function () {
     });
 
     it('spec#2 create valid project', function(done) {
+        spyOn(fs, 'readFileSync').and.callFake(function() {
+            return '{}';
+        });
+
+        var appName;
+        spyOn(fs, 'writeFileSync').and.callFake(function(path, str) {
+            var obj = JSON.parse(str);
+            appName = obj.APP_NAME;
+        });
+
         exists.and.returnValue(false);
         var rejectSpy = jasmine.createSpy();
         var config = {name: function() { return 'testname'; },
@@ -130,20 +140,36 @@ describe("create methods", function () {
             expect(rejectSpy).not.toHaveBeenCalled();
             checkCreateDir("test");
             checkCopiedFiles("test");
+            expect(fs.readFileSync).toHaveBeenCalled();
+            expect(fs.writeFileSync).toHaveBeenCalled();
+            expect(appName).toBe('testname');
             done();
         });
     });
 
     it('spec#3 create project with link', function(done) {
+        spyOn(fs, 'readFileSync').and.callFake(function() {
+            return '{}';
+        });
+
+        var appName;
+        spyOn(fs, 'writeFileSync').and.callFake(function(path, str) {
+            var obj = JSON.parse(str);
+            appName = obj.APP_NAME;
+        });
+
         exists.and.returnValue(false);
         var rejectSpy = jasmine.createSpy();
         var options = {link: true};
-        var config = {name: function() { return 'testname'; },
+        var config = {name: function() { return 'test'; },
             packageName: function() { return 'com.app.test'; }};
         create.create('test', config, options, events).fail(rejectSpy).done(function() {
             expect(rejectSpy).not.toHaveBeenCalled();
             checkCreateDir("test");
             checkLinkedFiles("test");
+            expect(fs.readFileSync).toHaveBeenCalled();
+            expect(fs.writeFileSync).toHaveBeenCalled();
+            expect(appName).toBe('test');
             done();
         });
     });
