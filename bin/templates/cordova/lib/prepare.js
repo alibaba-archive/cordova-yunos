@@ -326,14 +326,12 @@ function updateSplashes(cordovaProject, platformResourcesDir, manifestPath) {
     for (var density in yunosSplashes) {
         fileName = 'splashScreen.' + yunosSplashes[density].split('.').pop();
         var targetPath = path.join(platformResourcesDir, density, fileName);
-        var sourcePath = getSourcePath(platformResourcesDir, yunosSplashes[density]);
-        resourceMap[targetPath] = sourcePath;
+        resourceMap[targetPath] = yunosSplashes[density];
     }
     if (defaultSplash) {
         fileName = 'splashScreen.' + defaultSplash.split('.').pop();
         var targetPath = path.join(platformResourcesDir, 'default', fileName);
-        var sourcePath = getSourcePath(platformResourcesDir, defaultSplash);
-        resourceMap[targetPath] = sourcePath;
+        resourceMap[targetPath] = defaultSplash;
     }
     events.emit('verbose', 'Updating splashes at ' + platformResourcesDir);
     FileUpdater.updatePaths(resourceMap, {rootDir: cordovaProject.root}, logFileOp);
@@ -408,14 +406,12 @@ function updateIcons(cordovaProject, platformResourcesDir, manifestDir) {
     for (var density in yunosIcons) {
         fileName = 'icon.' + yunosIcons[density].split('.').pop();
         var targetPath = path.join(platformResourcesDir, density, fileName);
-        var sourcePath = getSourcePath(platformResourcesDir, yunosIcons[density]);
-        resourceMap[targetPath] = sourcePath;
+        resourceMap[targetPath] = yunosIcons[density];
     }
     if (defaultIcon) {
         fileName = 'icon.' + defaultIcon.split('.').pop();
         var defaultTargetPath = path.join(platformResourcesDir, 'default', fileName);
-        var sourcePath = getSourcePath(platformResourcesDir, defaultIcon);
-        resourceMap[defaultTargetPath] = sourcePath;
+        resourceMap[defaultTargetPath] = defaultIcon;
     }
     events.emit('verbose', 'Updating icons at ' + platformResourcesDir);
     FileUpdater.updatePaths(resourceMap, { rootDir: cordovaProject.root }, logFileOp);
@@ -425,15 +421,6 @@ function updateIcons(cordovaProject, platformResourcesDir, manifestDir) {
     manifest.pages[0].icon = path.join(fileName);
     fs.writeFileSync(manifestDir, JSON.stringify(manifest, null, 4), 'utf-8');
     events.emit('verbose', 'Updating manifest.json for icon.');
-}
-
-function getSourcePath(platformResourcesDir, iconPath) {
-    var iconPathValue = iconPath.split('/').slice(1);
-    var sourcePath = platformResourcesDir;
-    iconPathValue.forEach(function(item) {
-        sourcePath = path.join(sourcePath, item);
-    });
-    return sourcePath;
 }
 
 function cleanIcons(projectRoot, projectConfig, platformResourcesDir) {
