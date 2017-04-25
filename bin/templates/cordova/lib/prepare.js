@@ -83,6 +83,11 @@ module.exports.updatePermissions = function() {
     configParser.doc.findall('uses-permission').forEach(function(elt) {
         permissions.push(elt.attrib['yunos:name']);
     });
+    var events = [];
+    configParser.doc.findall('event').forEach(function(elt) {
+        events.push(elt.attrib['yunos:name']);
+    });
+
     var manifest = JSON.parse(fs.readFileSync(this.locations.manifest, 'utf-8'));
     if (manifest.domain.permission === undefined) {
         manifest.domain.permission = {};
@@ -96,6 +101,23 @@ module.exports.updatePermissions = function() {
             manifest.domain.permission.use_permission.push(permission);
         }
     }
+
+    if (events.length > 0) {
+        manifest.pages.forEach(function(page) {
+            if (page.main === true) {
+                if (page.events === undefined) {
+                    page.events = [];
+                }
+                events.forEach(function(event) {
+                    // The same event won't add to manifest again.
+                    if (!(page.events.filter(function(e) { return e.name === event; }).length > 0)) {
+                        page.events.push({"name": event});
+                    }
+                });
+            }
+        });
+    }
+
     fs.writeFileSync(this.locations.manifest, JSON.stringify(manifest, null, 4), 'utf-8');
 };
 
