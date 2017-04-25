@@ -23,6 +23,8 @@ class Plugin {
     // Constructor
     constructor() {
         this._serviceName = null;
+        this._config = null;
+        this._page = null;
     }
 
     // Called after plugin initialized.
@@ -56,6 +58,22 @@ class Plugin {
             // Action not founded in plugin
             return false;
         }
+    }
+
+    set config(config) {
+        this._config = config;
+    }
+
+    get config() {
+        return this._config;
+    }
+
+    set page(page) {
+        this._page = page;
+    }
+
+    get page() {
+        return this._page;
     }
 
     // Custom init for plugins.

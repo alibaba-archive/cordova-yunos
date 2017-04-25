@@ -28,9 +28,10 @@ const Log = require('../CordovaLib/Log');
 
 class CordovaEmbedded extends Page {
     onCreate() {
+        this._cordovaWebView = new CordovaWebView(this);
+        this._cordovaWebView.initCordova(this);
         // Set log name and level
         Log.setLogLevel('MyEmbeddedCordovaApp', 'VERBOSE');
-        this._cordovaWebView = new CordovaWebView();
         this._cordovaWebView.width = this.window.width;
         this._cordovaWebView.height = this.window.height;
         this._cordovaWebView.top = 0;
@@ -46,6 +47,12 @@ class CordovaEmbedded extends Page {
             Log.E(TAG, msg);
         }
         ConfigHelper.readConfig(success, error);
+        this._cordovaWebView.onCreate();
+    }
+
+    // The event is fired when the page instance is shown.
+    onShow() {
+        this._cordovaWebView.onShow();
     }
 
     // The event is fired when the page instance is started.
@@ -66,11 +73,6 @@ class CordovaEmbedded extends Page {
     // The event is fired when the page instance is destroyed.
     onDestroy() {
         this._cordovaWebView.onDestroy();
-    }
-
-    // The event is fired when the page instance is shown.
-    onShow() {
-        this._cordovaWebView.onShow();
     }
 
     // The event is fired when the page instance is hidden.

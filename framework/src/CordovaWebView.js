@@ -30,7 +30,6 @@ const TAG = 'CordovaWebView';
 class CordovaWebView extends WebView {
     constructor(options) {
         super(options);
-        this.initCordova();
     }
 
     initBridge() {
@@ -72,9 +71,13 @@ class CordovaWebView extends WebView {
         });
     }
 
-    initCordova() {
+    initCordova(page) {
         let self = this;
         function success(config) {
+            // Set config to PluginManager
+            pluginManager.config = config;
+            // Set page to PluginManager
+            pluginManager.page = page;
             // Set log name and level
             Log.setLogLevel(config.name, config.getPreferenceValue('LogLevel'));
             // Add default yunos core plugin

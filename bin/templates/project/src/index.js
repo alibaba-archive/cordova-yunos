@@ -27,6 +27,10 @@ const Log = require('../CordovaLib/Log');
 
 Page.instance.on('create', function() {
     function success(config) {
+        // Set config to PluginManager
+        pluginManager.config = config;
+        // Set page to PluginManager
+        pluginManager.page = Page.instance;
         // Set log name and level
         Log.setLogLevel(config.name, config.getPreferenceValue('LogLevel'));
         // Add default yunos core plugin

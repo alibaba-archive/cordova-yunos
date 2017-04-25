@@ -73,7 +73,7 @@ function instantiatePlugin(path) {
         let Plugin = require(path);
         plugin = new Plugin();
     } catch (e) {
-        Log.E(TAG, 'Filed to Instantiate ' + path + ': ' + e);
+        Log.E(TAG, 'Failed to Instantiate ' + path + ': ' + e);
     }
     return plugin;
 }
@@ -93,6 +93,8 @@ class PluginManager {
         // Plugin service name and path map
         this._entryMap = new HashMap();
         this._retMsgListener = null;
+        this._config = null;
+        this._page = null;
         hookRequire();
     }
 
@@ -158,6 +160,8 @@ class PluginManager {
             }
             plugin = instantiatePlugin(entry.path);
             if (plugin !== null) {
+                plugin.config = this._config;
+                plugin.page = this._page;
                 plugin.privateInitialize(service);
                 this._pluginMap.put(service, plugin);
             }
@@ -192,6 +196,22 @@ class PluginManager {
                 plugin[event].call(plugin, args);
             }
         }.bind(this));
+    }
+
+    set config(config) {
+        this._config = config;
+    }
+
+    get config() {
+        return this._config;
+    }
+
+    set page(page) {
+        this._page = page;
+    }
+
+    get page() {
+        return this._page;
     }
 
     onCreate() {

@@ -76,7 +76,7 @@ function Config(data) {
  * Reads a preference value from config.xml.
  * Returns preference value or undefined if it does not exist.
  * @param {String} preferenceName Preference name to read */
-Config.prototype.getPreferenceValue = function getPreferenceValue(preferenceName) {
+Config.prototype.getPreferenceValue = function getPreferenceValue(preferenceName, defaultValue) {
     preferenceName = preferenceName.toLowerCase();
     let list = [];
     this.preferences.each(function(elem) {
@@ -88,7 +88,7 @@ Config.prototype.getPreferenceValue = function getPreferenceValue(preferenceName
     if(list.length > 0) {
         return list[0];
     }
-    return '';
+    return defaultValue;
 };
 
 function readConfig(success, error) {
