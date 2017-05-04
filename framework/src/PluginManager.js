@@ -117,7 +117,7 @@ class PluginManager {
             var entry = this._entryMap.get(key);
             if (entry !== null && entry.onload === true) {
                 Log.D(TAG, 'Load Plugin:', entry.path);
-                this.getPlugin(keys[key]);
+                this.getPlugin(key);
             }
         }.bind(this));
         Log.D(TAG, 'End load startup plugins');
@@ -185,6 +185,124 @@ class PluginManager {
         }
         Log.V(TAG, 'Send plugin result for', callbackId);
         this._retMsgListener(result, callbackId);
+    }
+
+    shouldAllowRequest(url) {
+        let keys = this._pluginMap.keySet();
+        for (var i=0; i<keys.length; i++) {
+            let key = keys[i];
+            Log.V(TAG, 'check shouldAllowRequest:', url, ' for:', key);
+            let plugin = this._pluginMap.get(key);
+            if (plugin !== null) {
+                let allowed = plugin.shouldAllowRequest(url);
+                if (allowed !== undefined) {
+                    Log.V(TAG, 'shouldAllowRequest result:', allowed);
+                    return allowed;
+                }
+            }
+        }
+        Log.D(TAG, 'shouldAllowRequest, use default policy');
+        if (typeof url !== 'string') {
+            Log.E(TAG, 'shouldAllowRequest url is not string');
+            return false;
+        }
+        // Default policy from cordova-android:
+        if (url.startsWith('blob:') || url.startsWith('data:') || url.startsWith('about:blank')) {
+            return true;
+        }
+        // YunOS policy
+        if (url.startsWith('page://')) {
+            return true;
+        }
+        // File schema is not allowed
+        if (url.startsWith('file://')) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Called when the URL of the webview changes.
+     *
+     * @param url               The URL that is being changed to.
+     * @return                  Return false to allow the URL to load, return true to prevent the URL from loading.
+     */
+    onOverrideUrlLoading(url) {
+        let keys = this._pluginMap.keySet();
+        for (var i=0; i<keys.length; i++) {
+            let key = keys[i];
+            Log.V(TAG, 'check onOverrideUrlLoading:', url, ' for:', key);
+            let plugin = this._pluginMap.get(key);
+            if (plugin !== null) {
+                let override = plugin.onOverrideUrlLoading(url);
+                if (override === true) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Called when the webview is going to change the URL of the loaded content.
+     *
+     * This delegates to the installed plugins, and returns true/false for the
+     * first plugin to provide a non-null result.  If no plugins respond, then
+     * the default policy is applied.
+     *
+     * @param url       The URL that is being requested.
+     * @return          Returns true to allow the navigation,
+     *                  false to block the navigation.
+     */
+    shouldAllowNavigation(url) {
+        let keys = this._pluginMap.keySet();
+        for (var i=0; i<keys.length; i++) {
+            let key = keys[i];
+            Log.V(TAG, 'check shouldAllowNavigation:', url, ' for:', key);
+            let plugin = this._pluginMap.get(key);
+            if (plugin !== null) {
+                let allowed = plugin.shouldAllowNavigation(url);
+                if (allowed !== undefined) {
+                    Log.V(TAG, 'shouldAllowNavigation result:', allowed);
+                    return allowed;
+                }
+            }
+        }
+
+        // Default policy:
+        return url.startsWith('file://') || url.startsWith('about:blank') || url.startsWith('page://');
+    }
+
+    /**
+     * Called when the webview is going not going to navigate, but may launch
+     * an Intent for an URL.
+     *
+     * This delegates to the installed plugins, and returns true/false for the
+     * first plugin to provide a non-null result.  If no plugins respond, then
+     * the default policy is applied.
+     *
+     * @param url       The URL that is being requested.
+     * @return          Returns true to allow the URL to launch an intent,
+     *                  false to block the intent.
+     */
+    shouldOpenExternalUrl(url) {
+        let keys = this._pluginMap.keySet();
+        for (var i=0; i<keys.length; i++) {
+            let key = keys[i];
+            Log.V(TAG, 'check shouldOpenExternalUrl:', url, ' for:', key);
+            let plugin = this._pluginMap.get(key);
+            if (plugin !== null) {
+                let allowed = plugin.shouldOpenExternalUrl(url);
+                if (allowed !== undefined) {
+                    Log.V(TAG, 'shouldOpenExternalUrl result:', allowed);
+                    return allowed;
+                }
+            }
+        }
+
+        // Default policy:
+        // External URLs are not allowed
+        return false;
     }
 
     callPluginsEvent(event, args) {

@@ -20,6 +20,7 @@
 */
 
 const Plugin = require('./Plugin');
+const WhiteList = require('./WhiteList');
 
 class CoreYunOS extends Plugin {
     constructor() {
@@ -28,6 +29,19 @@ class CoreYunOS extends Plugin {
 
     initialize() {
         super.initialize();
+        this._whiteList = new WhiteList(this.config);
+    }
+
+    shouldAllowRequest(url) {
+        return this._whiteList.shouldAllowRequest(url);
+    }
+
+    shouldAllowNavigation(url) {
+        return this._whiteList.shouldAllowNavigation(url);
+    }
+
+    shouldOpenExternalUrl(url) {
+        return this._whiteList.shouldOpenExternalUrl(url);
     }
 }
 

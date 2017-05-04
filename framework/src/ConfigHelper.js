@@ -28,6 +28,7 @@ function Config(data) {
         let preferences = node.elements('preference');
         return preferences;
     }
+
     function loadFeatures(node) {
         let featureArray = [];
         let features = node.elements('feature');
@@ -64,12 +65,62 @@ function Config(data) {
         return retName;
     }
 
+    function loadAllowNavigations(node) {
+        let allowedNavigations = [];
+        // contents
+        let list = node.elements('content');
+        list.each(function(elem) {
+            let src = elem.attribute('src').toString().toLowerCase();
+            allowedNavigations.push(src);
+        });
+        // allow-navigation
+        list = node.elements('allow-navigation');
+        list.each(function(elem) {
+            let href = elem.attribute('href').toString().toLowerCase();
+            if (href === '*') {
+                allowedNavigations.push('http://*/*');
+                allowedNavigations.push('https://*/*');
+                allowedNavigations.push('data:*');
+            } else {
+                allowedNavigations.push(href);
+            }
+        });
+        return allowedNavigations;
+    }
+
+    function loadAllowIntents(node) {
+        let allowedIntents = [];
+        let list = node.elements('allow-intent');
+        list.each(function(elem) {
+            let href = elem.attribute('href').toString().toLowerCase();
+            allowedIntents.push(href);
+        });
+        return allowedIntents;
+    }
+
+    function loadAllowRequests(node) {
+        let allowedRequests = [];
+        let list = node.elements('access');
+        list.each(function(elem) {
+            let origin = elem.attribute('origin').toString().toLowerCase();
+            if (origin === '*') {
+                allowedRequests.push('http://*/*');
+                allowedRequests.push('https://*/*');
+            } else {
+                allowedRequests.push(origin);
+            }
+        });
+        return allowedRequests;
+    }
     let XML = require('./utils/jsxml').XML;
     let node = new XML(data);
     this.preferences = loadPreferences(node);
     this.features = loadFeatures(node);
     this.contentPath = loadContentPath(node);
     this.name = loadName(node);
+    this.allowedNavigations = loadAllowNavigations(node);
+    this.allowedIntents = loadAllowIntents(node);
+    this.allowedRequests = loadAllowRequests(node);
 }
 
 /**

@@ -25,7 +25,9 @@ const H5Page = require('yunos/page/H5Page');
 const Log = require('../CordovaLib/Log');
 const Path = require('path');
 
-class CordovaEmbedded extends H5Page {
+const TAG = 'CordovaApp';
+
+class CordovaApp extends H5Page {
     onCreate() {
         super.onCreate();
         let self = this;
@@ -94,6 +96,24 @@ class CordovaEmbedded extends H5Page {
         super.trimMemory();
         pluginManager.onTrimMemory();
     }
+
+    showWebPage(url, openExternal, clearHistory, params) {
+        // TODO
+    }
+
+    shouldOverrideUrlLoading(url) {
+        // Give plugins the chance to handle the url
+        if (pluginManager.onOverrideUrlLoading(url)) {
+            return true;
+        } else if (pluginManager.shouldAllowNavigation(url)) {
+            return false;
+        } else if (pluginManager.shouldOpenExternalUrl(url)) {
+            showWebPage(url, true, false, null);
+            return true;
+        }
+        Log.W(TAG, "Blocked (possibly sub-frame) navigation to non-allowed URL: " + url);
+        return true;
+    }
 }
 
-module.exports = CordovaEmbedded;
+module.exports = CordovaApp;
