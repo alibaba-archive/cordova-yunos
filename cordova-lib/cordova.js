@@ -1908,6 +1908,8 @@ module.exports = {
             var argsJson = JSON.stringify(args);
             window._cordovaNodeBridge.exec(service, action, callbackId, argsJson);
         }
+        // Init webview bridge
+        window._cordovaNodeBridge.exec('', 'gap_init:', '', '');
     },
 
     // Used only for agil-webview mode, will be called from node.

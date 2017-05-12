@@ -22,6 +22,7 @@
 const WebView = require('yunos/ui/view/WebView');
 
 const ConfigHelper = require('../CordovaLib/ConfigHelper');
+const CordovaWebViewClient = require('./CordovaWebViewClient');
 const Log = require('../CordovaLib/Log');
 const pluginManager = require('../CordovaLib/PluginManager').getInstance();
 
@@ -30,25 +31,10 @@ const TAG = 'CordovaWebView';
 class CordovaWebView extends WebView {
     constructor(options) {
         super(options);
+        this.client = new CordovaWebViewClient(this);
     }
 
-    initBridge() {
-        // JS -> Node bridge
-        let cordovaNodeBridge = {
-            exec: function(service, action, callbackId, argsJson) {
-                let args = [];
-                try {
-                    Log.v(TAG, 'Start parsing args from DOM');
-                    Log.v(TAG, 'argsJson: ' + argsJson);
-                    args = JSON.parse(argsJson);
-                    Log.v(TAG, 'args: ' + args);
-                } catch(e) {
-                    Log.e(TAG, 'Failed to parse args from DOM: ' + e);
-                }
-                pluginManager.exec(service, action, callbackId, args);
-            }
-        };
-        this.addJavascriptInterface(cordovaNodeBridge, '_cordovaNodeBridge', ['exec']);
+    initWebViewBridge() {
         // Node -> JS bridge
         let self = this;
         pluginManager.registerMsgListener(function(result, callbackId) {
@@ -69,6 +55,32 @@ class CordovaWebView extends WebView {
             jsStr = jsStr.replace('__callbackId__', callbackIdStr);
             self.evaluateJavaScript(jsStr);
         });
+    }
+
+    initBridge() {
+        // JS -> Node bridge
+        let self = this;
+        let cordovaNodeBridge = {
+            exec: function(service, action, callbackId, argsJson) {
+                let args = [];
+                // Init webview bridge
+                if (service === '' && action === 'gap_init:') {
+                    Log.v(TAG, 'Init WebView bridge');
+                    self.initWebViewBridge();
+                    return;
+                }
+                try {
+                    Log.v(TAG, 'Start parsing args from DOM');
+                    Log.v(TAG, 'argsJson: ' + argsJson);
+                    args = JSON.parse(argsJson);
+                    Log.v(TAG, 'args: ' + args);
+                } catch(e) {
+                    Log.e(TAG, 'Failed to parse args from DOM: ' + e);
+                }
+                pluginManager.exec(service, action, callbackId, args);
+            }
+        };
+        this.addJavascriptInterface(cordovaNodeBridge, '_cordovaNodeBridge', ['exec']);
     }
 
     initCordova(page) {

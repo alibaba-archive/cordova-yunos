@@ -14,7 +14,7 @@
     "pages": [
         {
             "uri": "page://h5app.yunos.com/h5app",
-            "content_path": "src/index.js",
+            "content_path": "src/index_embedded.js",
             "main": true,
             "type":"HTMLPage",
             "icon": "res/default/icon.png",
