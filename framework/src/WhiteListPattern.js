@@ -130,11 +130,9 @@ class WhiteListPattern {
         for (let i=0; i<this._patterns.length; i++) {
             let pattern = this._patterns[i];
             if (pattern.matches(url)) {
-                Log.V(TAG, 'Matched');
                 return true;
             }
         }
-        Log.V(TAG, 'Not Matched');
         return false;
     }
 }

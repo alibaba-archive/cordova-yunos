@@ -18,6 +18,8 @@
  * under the License.
  *
 */
+const Log = require('./Log');
+const TAG = 'Plugin';
 
 class Plugin {
     // Constructor
@@ -50,11 +52,11 @@ class Plugin {
                 }
                 return ret;
             } catch(e) {
-                console.log('Call action:' + action + ' failed with error:' + e);
+                Log.E(TAG, 'Call action:' + action + ' failed with error:' + e);
                 return false;
             }
         } else {
-            console.error('No action:' + action + ' founded in ' + this._serviceName);
+            Log.E(TAG, 'No action:' + action + ' founded in ' + this._serviceName);
             // Action not founded in plugin
             return false;
         }

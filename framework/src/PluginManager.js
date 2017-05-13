@@ -191,11 +191,11 @@ class PluginManager {
         let keys = this._pluginMap.keySet();
         for (var i=0; i<keys.length; i++) {
             let key = keys[i];
-            Log.V(TAG, 'check shouldAllowRequest:', url, ' for:', key);
             let plugin = this._pluginMap.get(key);
             if (plugin !== null) {
                 let allowed = plugin.shouldAllowRequest(url);
                 if (allowed !== undefined) {
+                    Log.V(TAG, 'check shouldAllowRequest:', url, ' for:', key);
                     Log.V(TAG, 'shouldAllowRequest result:', allowed);
                     return allowed;
                 }
@@ -231,11 +231,11 @@ class PluginManager {
         let keys = this._pluginMap.keySet();
         for (var i=0; i<keys.length; i++) {
             let key = keys[i];
-            Log.V(TAG, 'check onOverrideUrlLoading:', url, ' for:', key);
             let plugin = this._pluginMap.get(key);
             if (plugin !== null) {
                 let override = plugin.onOverrideUrlLoading(url);
                 if (override === true) {
+                    Log.V(TAG, 'overrideUrlLoading on:', url, ' for:', key);
                     return true;
                 }
             }
@@ -258,12 +258,11 @@ class PluginManager {
         let keys = this._pluginMap.keySet();
         for (var i=0; i<keys.length; i++) {
             let key = keys[i];
-            Log.V(TAG, 'check shouldAllowNavigation:', url, ' for:', key);
             let plugin = this._pluginMap.get(key);
             if (plugin !== null) {
                 let allowed = plugin.shouldAllowNavigation(url);
                 if (allowed !== undefined) {
-                    Log.V(TAG, 'shouldAllowNavigation result:', allowed);
+                    Log.V(TAG, 'shouldAllowNavigation result:', allowed, ' for:' , key);
                     return allowed;
                 }
             }
@@ -289,12 +288,11 @@ class PluginManager {
         let keys = this._pluginMap.keySet();
         for (var i=0; i<keys.length; i++) {
             let key = keys[i];
-            Log.V(TAG, 'check shouldOpenExternalUrl:', url, ' for:', key);
             let plugin = this._pluginMap.get(key);
             if (plugin !== null) {
                 let allowed = plugin.shouldOpenExternalUrl(url);
                 if (allowed !== undefined) {
-                    Log.V(TAG, 'shouldOpenExternalUrl result:', allowed);
+                    Log.V(TAG, 'shouldOpenExternalUrl result:', allowed, ' for:', key);
                     return allowed;
                 }
             }
@@ -306,9 +304,9 @@ class PluginManager {
     }
 
     callPluginsEvent(event, args) {
+        Log.V(TAG, 'Events:', event, 'received');
         let keys = this._pluginMap.keySet();
         keys.forEach(function(key) {
-            Log.V(TAG, 'Events:', event, 'received for:', key);
             let plugin = this._pluginMap.get(key);
             if (plugin !== null) {
                 plugin[event].call(plugin, args);

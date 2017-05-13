@@ -39,11 +39,9 @@ class CordovaWebView extends WebView {
         let self = this;
         pluginManager.registerMsgListener(function(result, callbackId) {
             let jsStr =
-                'var result = __result__;' +
-                'var callbackId = __callbackId__;' +
                 'setTimeout(function() {' +
                 '    var bridgeImpl = cordova.require("cordova/yunos/bridgeimpl");' +
-                '    bridgeImpl.onNodeMessageReceivedAgilWebView(result, callbackId);' +
+                '    bridgeImpl.onNodeMessageReceivedAgilWebView(__result__, __callbackId__);' +
                 '}, 0);';
             let resultStr = '\'';
             resultStr += result.toString();
@@ -65,17 +63,17 @@ class CordovaWebView extends WebView {
                 let args = [];
                 // Init webview bridge
                 if (service === '' && action === 'gap_init:') {
-                    Log.v(TAG, 'Init WebView bridge');
+                    Log.V(TAG, 'Init WebView bridge');
                     self.initWebViewBridge();
                     return;
                 }
                 try {
-                    Log.v(TAG, 'Start parsing args from DOM');
-                    Log.v(TAG, 'argsJson: ' + argsJson);
+                    Log.V(TAG, 'Start parsing args from DOM:', service, ':', action);
+                    Log.V(TAG, 'argsJson: ' + argsJson);
                     args = JSON.parse(argsJson);
-                    Log.v(TAG, 'args: ' + args);
+                    Log.V(TAG, 'args: ' + args);
                 } catch(e) {
-                    Log.e(TAG, 'Failed to parse args from DOM: ' + e);
+                    Log.E(TAG, 'Failed to parse args from DOM: ' + e);
                 }
                 pluginManager.exec(service, action, callbackId, args);
             }
