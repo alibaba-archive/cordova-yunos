@@ -24,6 +24,7 @@ const ConfigHelper = require('../CordovaLib/ConfigHelper');
 const H5Page = require('yunos/page/H5Page');
 const Log = require('../CordovaLib/Log');
 const Path = require('path');
+const CordovaWebViewClient = require('../CordovaLib/CordovaWebViewClient');
 
 const TAG = 'CordovaApp';
 
@@ -36,6 +37,9 @@ class CordovaApp extends H5Page {
             pluginManager.config = config;
             // Set page to PluginManager
             pluginManager.page = self;
+            // Set webview to PluginManager.
+            // TODO: need support webview like APIs in H5Page
+            pluginManager.webview = self;
             // Set log name and level
             Log.setLogLevel(config.name, config.getPreferenceValue('LogLevel'));
             // Add default yunos core plugin
@@ -53,6 +57,7 @@ class CordovaApp extends H5Page {
             console.log(msg);
         }
         ConfigHelper.readConfig(success, error);
+        this.client = new CordovaWebViewClient(this, this);
     }
 
     // The event is fired when the page instance is started.
@@ -97,22 +102,13 @@ class CordovaApp extends H5Page {
         pluginManager.onTrimMemory();
     }
 
-    showWebPage(url, openExternal, clearHistory, params) {
-        // TODO
+    shouldOverrideUrlLoading(url) {
+        return this.client.shouldOverrideUrlLoading(url);
     }
 
-    shouldOverrideUrlLoading(url) {
-        // Give plugins the chance to handle the url
-        if (pluginManager.onOverrideUrlLoading(url)) {
-            return true;
-        } else if (pluginManager.shouldAllowNavigation(url)) {
-            return false;
-        } else if (pluginManager.shouldOpenExternalUrl(url)) {
-            showWebPage(url, true, false, null);
-            return true;
-        }
-        Log.W(TAG, "Blocked (possibly sub-frame) navigation to non-allowed URL: " + url);
-        return true;
+    setButtonPlumbedToJs(button, override) {
+        // TODO:
+        // Override buttons
     }
 }
 

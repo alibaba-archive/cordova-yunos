@@ -95,6 +95,7 @@ class PluginManager {
         this._retMsgListener = null;
         this._config = null;
         this._page = null;
+        this._webview = null;
         hookRequire();
     }
 
@@ -162,6 +163,7 @@ class PluginManager {
             if (plugin !== null) {
                 plugin.config = this._config;
                 plugin.page = this._page;
+                plugin.webview = this._webview;
                 plugin.privateInitialize(service);
                 this._pluginMap.put(service, plugin);
             }
@@ -328,6 +330,14 @@ class PluginManager {
 
     get page() {
         return this._page;
+    }
+
+    set webview(webview) {
+        this._webview = webview;
+    }
+
+    get webview() {
+        return this._webview;
     }
 
     onCreate() {

@@ -25,13 +25,14 @@ const Page = require('yunos/page/Page');
 const ConfigHelper = require('../CordovaLib/ConfigHelper');
 const CordovaWebView = require('../CordovaLib/CordovaWebView');
 const Log = require('../CordovaLib/Log');
+const TAG = 'CordovaEmbedded';
 
 class CordovaEmbedded extends Page {
     onCreate() {
+        Log.setLogLevel('MyEmbeddedCordovaApp', 'VERBOSE');
         this._cordovaWebView = new CordovaWebView(this);
         this._cordovaWebView.initCordova(this);
         // Set log name and level
-        Log.setLogLevel('MyEmbeddedCordovaApp', 'VERBOSE');
         this._cordovaWebView.width = this.window.width;
         this._cordovaWebView.height = this.window.height;
         this._cordovaWebView.top = 0;
@@ -83,6 +84,20 @@ class CordovaEmbedded extends Page {
     // The event is fired when the page instance is requested to trim memory.
     onTrimMemory() {
         this._cordovaWebView.onTrimMemory();
+    }
+
+    // The method is called when the back key is pressed on this page.
+    onBackKey() {
+        // Send back key event to cordova.
+        // backKeyHandled === true: cordova has handled back key event.
+        // otherwise, application should handle back key.
+        let backKeyHandled = this._cordovaWebView.onBackKey();
+
+        // Cordova omitted back key event, application should quite.
+        if (backKeyHandled === false) {
+            this.stopPage();
+        }
+        return true;
     }
 }
 module.exports = CordovaEmbedded;

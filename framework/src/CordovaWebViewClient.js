@@ -26,13 +26,37 @@ const pluginManager = require('../CordovaLib/PluginManager').getInstance();
 const TAG = 'CordovaWebViewClient';
 
 class CordovaWebViewClient extends WebViewClient {
-    constructor(webview) {
+    constructor(webview, page) {
         super();
         this._webview = webview;
+        this._page = page;
     }
 
     showWebPage(url, openExternal, clearHistory, params) {
-        // TODO
+        Log.D(TAG, 'showWebPage:', url, openExternal, clearHistory, params);
+        if (clearHistory === true) {
+            this._webview.history.clear();
+        }
+
+        // If loading into our webview
+        if (openExternal === false) {
+            if (pluginManager.shouldAllowNavigation(url) === true) {
+                //TODO: load url in this webview and treat with load timeout
+                Log.E(TAG, 'Not implemented');
+                return;
+            } else {
+                Log.W(TAG, 'showWebPage: Refusing to load URL into webview since it is not in the <allow-navigation> whitelist. URL=', url);
+            }
+        }
+        if (pluginManager.shouldOpenExternalUrl(url) === false) {
+            LOG.W(TAG, "showWebPage: Refusing to send intent for URL since it is not in the <allow-intent> whitelist. URL=" + url);
+            return;
+        }
+        let PageLink = require("yunos/page/PageLink");
+        let linkObject = new PageLink("page://ucbrowser.yunos.com/browser");
+        let data = {url: url};
+        linkObject.data = JSON.stringify(data);
+        this._page.sendLink(linkObject);
     }
 
     shouldOverrideUrlLoading(webView, url) {
@@ -42,7 +66,7 @@ class CordovaWebViewClient extends WebViewClient {
         } else if (pluginManager.shouldAllowNavigation(url)) {
             return false;
         } else if (pluginManager.shouldOpenExternalUrl(url)) {
-            showWebPage(url, true, false, null);
+            this.showWebPage(url, true, false, null);
             return true;
         }
         Log.W(TAG, "Blocked (possibly sub-frame) navigation to non-allowed URL: " + url);

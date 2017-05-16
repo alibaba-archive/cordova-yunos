@@ -27,6 +27,7 @@ class Plugin {
         this._serviceName = null;
         this._config = null;
         this._page = null;
+        this._webview = null;
     }
 
     // Called after plugin initialized.
@@ -76,6 +77,14 @@ class Plugin {
 
     get page() {
         return this._page;
+    }
+
+    set webview(webview) {
+        this._webview = webview;
+    }
+
+    get webview() {
+        return this._webview;
     }
 
     // Custom init for plugins.

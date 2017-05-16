@@ -21,6 +21,8 @@
 
 const BACK_KEYCODE = 27;
 
+const is_dom_on_node = yunos !== undefined && yunos.require !== undefined;
+
 module.exports = {
     id: 'yunos',
 
@@ -33,7 +35,12 @@ module.exports = {
 
         modulemapper.clobbers('cordova/exec/proxy', 'cordova.commandProxy');
 
+        // Align with android navigator.app plugin
+        modulemapper.clobbers('cordova/plugin/yunos/app', 'navigator.app');
+
         channel.onNativeReady.fire();
+
+        var APP_PLUGIN_NAME = 'CoreYunOS';
 
         // Inject a listener for the backbutton on the document.
         var backKeyEventListener = function(e) {
@@ -51,9 +58,17 @@ module.exports = {
             // Register key event in Domono mode.
             // TODO: Receive backbutton event from page in agil-webview mode.
             if (isOverride) {
-                document.addEventListener('keyup', backKeyEventListener);
+                if (is_dom_on_node) {
+                    document.addEventListener('keyup', backKeyEventListener);
+                } else {
+                    exec(null, null, APP_PLUGIN_NAME, "overrideBackbutton", [true]);
+                }
             } else {
-                document.removeEventListener('keyup', backKeyEventListener);
+                if (is_dom_on_node) {
+                    document.removeEventListener('keyup', backKeyEventListener);
+                } else {
+                    exec(null, null, APP_PLUGIN_NAME, "overrideBackbutton", [false]);
+                }
             }
         };
 
@@ -66,6 +81,24 @@ module.exports = {
             }
         }, false);
 
+        channel.onCordovaReady.subscribe(function() {
+            exec(onMessageFromNative, null, APP_PLUGIN_NAME, 'messageChannel', []);
+        });
+
     // End of bootstrap
     }
 };
+
+function onMessageFromNative(msg) {
+    var cordova = require('cordova');
+    var action = msg.action;
+
+    switch (action)
+    {
+        case 'backbutton':
+            cordova.fireDocumentEvent(action);
+            break;
+        default:
+            throw new Error('Unknown event action ' + action);
+    }
+}

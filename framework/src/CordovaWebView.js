@@ -21,17 +21,19 @@
 
 const WebView = require('yunos/ui/view/WebView');
 
-const ConfigHelper = require('../CordovaLib/ConfigHelper');
+const ConfigHelper = require('./ConfigHelper');
+const CoreYunOS = require('./CoreYunOS');
 const CordovaWebViewClient = require('./CordovaWebViewClient');
-const Log = require('../CordovaLib/Log');
-const pluginManager = require('../CordovaLib/PluginManager').getInstance();
+const Log = require('./Log');
+const pluginManager = require('./PluginManager').getInstance();
 
 const TAG = 'CordovaWebView';
 
 class CordovaWebView extends WebView {
     constructor(options) {
         super(options);
-        this.client = new CordovaWebViewClient(this);
+        this.boundKeys = [];
+        this.appPlugin = null;
     }
 
     initWebViewBridge() {
@@ -83,15 +85,16 @@ class CordovaWebView extends WebView {
 
     initCordova(page) {
         let self = this;
+        this.client = new CordovaWebViewClient(this, page);
         function success(config) {
             // Set config to PluginManager
             pluginManager.config = config;
             // Set page to PluginManager
             pluginManager.page = page;
-            // Set log name and level
-            Log.setLogLevel(config.name, config.getPreferenceValue('LogLevel'));
+            // Set webview to PluginManager
+            pluginManager.webview = self;
             // Add default yunos core plugin
-            pluginManager.addService('CoreYunOS', 'CordovaLib/CoreYunOSDomono', true);
+            pluginManager.addService('CoreYunOS', 'CordovaLib/CoreYunOS', true);
             // Initialize custom plugins
             const PluginLoader = require('../CordovaLib/PluginLoader');
             PluginLoader.init();
@@ -144,5 +147,82 @@ class CordovaWebView extends WebView {
     onTrimMemory() {
         pluginManager.onTrimMemory();
     }
+
+    // The method is called when the back key is pressed on this page.
+    onBackKey() {
+        let handled = this.dispatchKeyEventToDOM(CoreYunOS.BACK_BUTTON);
+        if (handled === true) {
+            return true;
+        }
+        if (this.canGoBack === true) {
+            this.goBack();
+            return true;
+        }
+        return false;
+    }
+
+    dispatchKeyEventToDOM(key) {
+        if (this.keyBoundedInDOM(key)) {
+            if (this.appPlugin === null) {
+                this.appPlugin = pluginManager.getPlugin('CoreYunOS');
+            }
+            if (this.appPlugin === null) {
+                Log.E(TAG, 'Failed to get CoreYunOS plugin');
+                return false;
+            }
+            this.appPlugin.fireDOMEvent(key);
+            return true;
+        }
+        return false;
+    }
+
+    keyBoundedInDOM(key) {
+        let founded = false;
+        for (let i in this.boundKeys) {
+            if (this.boundKeys[i] === key) {
+                founded = true;
+            }
+        }
+        return founded;
+    }
+
+    pushBoundKeys(key) {
+        let founded = false;
+        for (let i in this.boundKeys) {
+            if (this.boundKeys[i] === key) {
+                founded = true;
+            }
+        }
+        if (founded === false) {
+            this.boundKeys.push(key);
+        }
+    }
+
+    popBoundKeys(key) {
+        let index = -1;
+        for (let i in this.boundKeys) {
+            if (this.boundKeys[i] === key) {
+                index = i;
+            }
+        }
+        if (index !== -1) {
+            this.boundKeys.splice(index, 1);
+        }
+    }
+
+    setButtonPlumbedToJs(button, override) {
+        switch(button) {
+            case CoreYunOS.BACK_BUTTON:
+                if (override) {
+                    this.pushBoundKeys(button);
+                } else {
+                    this.popBoundKeys(button);
+                }
+            break;
+            default:
+                Log.E(TAG, 'Not allowed to bound key:', button);
+        }
+    }
 }
+
 module.exports = CordovaWebView;
