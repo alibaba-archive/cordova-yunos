@@ -72,5 +72,9 @@ class CordovaWebViewClient extends WebViewClient {
         Log.W(TAG, "Blocked (possibly sub-frame) navigation to non-allowed URL: " + url);
         return true;
     }
+
+    onPageStarted(webView, url) {
+        pluginManager.onReset();
+    }
 }
 module.exports = CordovaWebViewClient;

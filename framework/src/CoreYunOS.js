@@ -19,6 +19,9 @@
  *
 */
 
+const AudioManager = require("yunos/device/AudioManager");
+const Page = require('yunos/page/Page');
+
 const Log = require('../CordovaLib/Log');
 const Plugin = require('./Plugin');
 const PluginResult = require('./PluginResult');
@@ -30,11 +33,77 @@ class CoreYunOS extends Plugin {
     constructor() {
         super();
         this._messageChannel = null;
+        this._boundVolumeUp = false;
+        this._boundVolumeDown = false;
     }
 
     initialize() {
         super.initialize();
         this._whiteList = new WhiteList(this.config);
+        this.initVolumeType();
+    }
+
+    initVolumeType() {
+        let volumeType = this.config.getPreferenceValue('DefaultVolumeStream', '');
+        volumeType = volumeType.toLocaleLowerCase();
+        Log.V(TAG, 'volumeType = ', volumeType);
+        if (volumeType === 'media') {
+            this._audioStreamType = this.page.adjustableAudioStreamType = Page.AdjustableAudioStreamType.AUDIO_STREAM_MUSIC;
+        } else {
+            this._audioStreamType = this.page.adjustableAudioStreamType = Page.AdjustableAudioStreamType.AUDIO_STREAM_VOICE_CALL;
+        }
+        this._boundVolumeDown = false;
+        this._boundVolumeUp = false;
+    }
+
+    adjustStreamVolunme(key) {
+        const {StreamType} = AudioManager;
+        const {FLAG_SHOW_UI} = AudioManager.AdjustFlag;
+        const {ADJUST_LOWER, ADJUST_RAISE} = AudioManager.AdjustDirection;
+        let amInstance = AudioManager.getInstance();
+        let direction = null;
+        if (key === CoreYunOS.VOLUME_UP) {
+            direction = ADJUST_RAISE;
+        } else if (key === CoreYunOS.VOLUME_DOWN) {
+            direction = ADJUST_LOWER;
+        }
+        if (direction !== null) {
+            amInstance.adjustStreamVolume(StreamType[this._audioStreamType], direction, FLAG_SHOW_UI);
+        }
+    }
+
+    // This function will take the control of volume button.
+    bindVolumeButton() {
+        // Own volume button control from system.
+        if (this.page.adjustableAudioStreamType === null) {
+            Log.D(TAG, 'Volume button already controlled by app');
+            return;
+        }
+        this.page.adjustableAudioStreamType = null;
+        this.page.window.on('keydown', (e)=> {
+            let direction = null;
+            Log.D(TAG, 'keydown: ', e.code, 'boundVolumeUp:', this._boundVolumeUp, 'boundVolumeDown', this._boundVolumeDown);
+            switch(e.code) {
+                case 'VolumeUp':
+                    if (this._boundVolumeUp === true) {
+                        this.webview.dispatchKeyEventToDOM(CoreYunOS.VOLUME_UP);
+                    } else {
+                        this.adjustStreamVolunme(CoreYunOS.VOLUME_UP);
+                    }
+                    e.preventDefault();
+                    break;
+                case 'VolumeDown':
+                    if (this._boundVolumeDown === true) {
+                        this.webview.dispatchKeyEventToDOM(CoreYunOS.VOLUME_DOWN);
+                    } else {
+                        this.adjustStreamVolunme(CoreYunOS.VOLUME_DOWN);
+                    }
+                    e.preventDefault();
+                    break;
+                default:
+                    break;
+            }
+        });
     }
 
     shouldAllowRequest(url) {
@@ -128,8 +197,34 @@ class CoreYunOS extends Plugin {
         this.webview.setButtonPlumbedToJs(CoreYunOS.BACK_BUTTON, args[0]);
     }
 
+    // Only volume button allowed
     overrideButton(callbackContext, args) {
-        //TODO
+        if (args.length !== 2) {
+            Log.E(TAG, 'overrideBackbutton argument error: ', args);
+            return;
+        }
+        let button = args[0];
+        let override = args[1];
+        let key = null;
+        if (button === 'volumeup') {
+            key = CoreYunOS.VOLUME_UP;
+            this._boundVolumeUp = override;
+        } else if (button === 'volumedown') {
+            key = CoreYunOS.VOLUME_DOWN;
+            this._boundVolumeDown = override;
+        }
+        if (key !== null) {
+            if (override === true) {
+                this.bindVolumeButton();
+            } else {
+                // When no volume button bound in DOM, give up the volume control.
+                if (this._boundVolumeUp === false &&
+                    this._boundVolumeDown === false) {
+                    this.initVolumeType();
+                }
+            }
+        }
+        this.webview.setButtonPlumbedToJs(key, override);
     }
 
     exitApp() {
@@ -151,9 +246,16 @@ class CoreYunOS extends Plugin {
         result.keepCallback = true;
         this._messageChannel.sendPluginResult(result);
     }
+
+    onReset() {
+        this.webview.clearBoundButtons();
+        this.initVolumeType();
+    }
 }
 
 CoreYunOS.BACK_BUTTON = 'backbutton';
+CoreYunOS.VOLUME_UP = 'volumeupbutton';
+CoreYunOS.VOLUME_DOWN = 'volumedownbutton';
 
 module.exports = CoreYunOS;
 

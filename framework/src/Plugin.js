@@ -124,6 +124,12 @@ class Plugin {
     }
 
     /**
+     * Called when the app navigates or refreshes.
+     */
+    onReset() {
+    }
+
+    /**
      * Hook for blocking the loading of external resources.
      *
      * This will be called when the WebView's shouldInterceptRequest wants to

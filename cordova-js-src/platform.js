@@ -72,6 +72,17 @@ module.exports = {
             }
         };
 
+        function bindButtonChannel(buttonName) {
+            // generic button bind used for volumeup/volumedown buttons
+            var volumeButtonChannel = cordova.addDocumentEventHandler(buttonName + 'button');
+            volumeButtonChannel.onHasSubscribersChange = function() {
+                exec(null, null, APP_PLUGIN_NAME, "overrideButton", [buttonName, this.numHandlers == 1]);
+            };
+        }
+        // Inject a listener for the volume buttons on the document.
+        bindButtonChannel('volumeup');
+        bindButtonChannel('volumedown');
+
         // Receive Pause/Resume events from W3C API instead of YunOS Page API.
         document.addEventListener('visibilitychange', function() {
             if (document.hidden) {
@@ -96,6 +107,8 @@ function onMessageFromNative(msg) {
     switch (action)
     {
         case 'backbutton':
+        case 'volumeupbutton':
+        case 'volumedownbutton':
             cordova.fireDocumentEvent(action);
             break;
         default:

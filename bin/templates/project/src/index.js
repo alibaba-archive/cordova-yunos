@@ -109,6 +109,13 @@ class CordovaApp extends H5Page {
     setButtonPlumbedToJs(button, override) {
         // TODO:
         // Override buttons
+        Log.W(TAG, 'setButtonPlumbedToJs not implemented');
+    }
+
+    clearBoundButtons() {
+        // TODO:
+        // Override buttons
+        Log.W(TAG, 'clearBoundButtons not implemented');
     }
 }
 

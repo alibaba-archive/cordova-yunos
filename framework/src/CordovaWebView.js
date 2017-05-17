@@ -148,7 +148,7 @@ class CordovaWebView extends WebView {
         pluginManager.onTrimMemory();
     }
 
-    // The method is called when the back key is pressed on this page.
+    // The method will be called when the back key is pressed on this page.
     onBackKey() {
         let handled = this.dispatchKeyEventToDOM(CoreYunOS.BACK_BUTTON);
         if (handled === true) {
@@ -173,6 +173,7 @@ class CordovaWebView extends WebView {
             this.appPlugin.fireDOMEvent(key);
             return true;
         }
+        Log.D(TAG, key, ' not bound in DOM');
         return false;
     }
 
@@ -213,6 +214,8 @@ class CordovaWebView extends WebView {
     setButtonPlumbedToJs(button, override) {
         switch(button) {
             case CoreYunOS.BACK_BUTTON:
+            case CoreYunOS.VOLUME_UP:
+            case CoreYunOS.VOLUME_DOWN:
                 if (override) {
                     this.pushBoundKeys(button);
                 } else {
@@ -222,6 +225,10 @@ class CordovaWebView extends WebView {
             default:
                 Log.E(TAG, 'Not allowed to bound key:', button);
         }
+    }
+
+    clearBoundButtons() {
+        this.boundKeys = [];
     }
 }
 

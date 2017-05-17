@@ -371,6 +371,10 @@ class PluginManager {
     onTrimMemory() {
         this.callPluginsEvent('onTrimMemory');
     }
+
+    onReset() {
+        this.callPluginsEvent('onReset');
+    }
 }
 
 module.exports = PluginManager;
