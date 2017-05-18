@@ -46,7 +46,7 @@ describe("create methods", function () {
         }
 
         var tests = [
-            new copyInfo("-rf", "framework/src", "CordovaLib"),
+            new copyInfo("-rf", "framework/src/", "CordovaLib"),
             new copyInfo("-f", "bin/templates/project/.jsbeautifyrc", "."),
             new copyInfo("-f", "bin/templates/project/.tern-project", "."),
             new copyInfo("-f", "bin/templates/project/.yunos-project", "."),
@@ -82,7 +82,7 @@ describe("create methods", function () {
         }
 
         var tests = [
-            new symblinkInfo("framework/src", "CordovaLib/src"),
+            new symblinkInfo("framework/src", "CordovaLib"),
             new symblinkInfo("bin/templates/project/libs", "libs"),
             new symblinkInfo("bin/templates/project/spec", "spec"),
             new symblinkInfo("bin/templates/project/test", "test")

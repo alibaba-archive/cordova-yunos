@@ -30,15 +30,16 @@ var fs         = require('fs'),
 var CordovaError = require('cordova-common').CordovaError;
 
 function copyJsAndLibrary(project_path, shared) {
+    shjs.mkdir('-p', project_path);
     var cordovaLibPath = path.join(project_path, 'CordovaLib');
-    shjs.mkdir('-p', cordovaLibPath);
     if (shared) {
-        fs.symlinkSync(path.join(ROOT, 'framework','src'), path.join(cordovaLibPath,'src'));
+        fs.symlinkSync(path.join(ROOT, 'framework', 'src'), cordovaLibPath);
         fs.symlinkSync(path.join(ROOT, 'bin', 'templates', 'project', 'libs'), path.join(project_path, 'libs'));
         fs.symlinkSync(path.join(ROOT, 'bin', 'templates', 'project', 'spec'), path.join(project_path, 'spec'));
         fs.symlinkSync(path.join(ROOT, 'bin', 'templates', 'project', 'test'), path.join(project_path, 'test'));
     } else {
-        shjs.cp('-rf', path.join(ROOT, 'framework','src'), cordovaLibPath);
+        shjs.mkdir('-p', cordovaLibPath);
+        shjs.cp('-rf', path.join(ROOT, 'framework', 'src/'), cordovaLibPath);
         shjs.cp('-rf', path.join(ROOT, 'bin', 'templates', 'project', 'libs'), path.join(project_path));
         shjs.cp('-rf', path.join(ROOT, 'bin', 'templates', 'project', 'spec'), path.join(project_path));
         shjs.cp('-rf', path.join(ROOT, 'bin', 'templates', 'project', 'test'), path.join(project_path));

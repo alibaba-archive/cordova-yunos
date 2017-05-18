@@ -74,7 +74,7 @@ function generateYpp(options) {
     shjs.mkdir('-p', yppDir);
     // Copy source files or directories to a package directory, delete it after generating
     // a package with signature
-    shjs.cp('-rf', path.join(platformAppDir, 'CordovaLib', 'src'), path.join(packageDir, 'CordovaLib'));
+    shjs.cp('-rf', path.join(platformAppDir, 'CordovaLib/'), path.join(packageDir, 'CordovaLib'));
     shjs.cp('-rf', path.join(platformAppDir, 'libs'), packageDir);
     shjs.cp('-f', path.join(platformAppDir, 'manifest.json'), packageDir);
     shjs.cp('-rf', path.join(platformAppDir, 'res'), packageDir);
