@@ -42,6 +42,10 @@ class CordovaEmbedded extends Page {
             // Load the content path with agil-webview mode
             let href = config.contentPath || 'index.html';
             self._cordovaWebView.url = Path.join('res', 'asset', href);
+            // Init fullscreen and orientation
+            let fullscreen = config.getPreferenceValue('fullscreen', false);
+            let orientation = config.getPreferenceValue('orientation', 'portrait');
+            self.initWindow(fullscreen, orientation);
         }
         function error(msg) {
             Log.E(TAG, 'Failed to get content src:');
@@ -49,6 +53,39 @@ class CordovaEmbedded extends Page {
         }
         ConfigHelper.readConfig(success, error);
         this._cordovaWebView.onCreate();
+    }
+
+    initWindow(fullscreen, orientation) {
+        if (fullscreen === 'true') {
+            this.window.fullScreenMode = true;
+        } else if (fullscreen === 'false') {
+            this.window.fullScreenMode = false;
+        } else {
+            Log.E(TAG, 'Invalid fullscreen preference:', fullscreen);
+        }
+        let orientationFlag = Page.Orientation.Portrait;
+        switch(orientation) {
+            case 'all':
+                this.autoOrientation = true;
+                break;
+            case 'default':
+                orientationFlag = Page.Orientation.Portrait;
+                break;
+            case 'landscape':
+                orientationFlag = Page.Orientation.LandscapeLeft;
+                break;
+            case 'portrait':
+                orientationFlag = Page.Orientation.Portrait;
+                break;
+            default:
+                Log.E(TAG, 'Invalid orientation preference:', orientation);
+        }
+        this.orientation = orientationFlag;
+    }
+
+    onOrientationChange(orientation) {
+        this._cordovaWebView.width = this.window.width;
+        this._cordovaWebView.height = this.window.height;
     }
 
     // The event is fired when the page instance is shown.
