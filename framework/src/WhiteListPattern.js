@@ -92,19 +92,19 @@ class WhiteListPattern {
         this._patterns = [];
     }
 
-    addWhiteListEntry(pattern) {
+    addWhiteListEntry(patternStr) {
         if (this._patterns === undefined) {
             return;
         }
-        if (pattern === '*') {
+        if (patternStr === '*') {
             Log.D(TAG, 'Unlimited access to network resources');
             this._patterns = undefined;
             return;
         }
-        let regex = new RegExp('^(([*A-Za-z-]+):(\/\/)?)?(((([A-Za-z-]+)\.\*)?[^\*/:]+))?(:(\d+))?(\/.*)?');
-        let matches = regex.exec(pattern);
+        let regex = new RegExp('^(([*A-Za-z-]+):(\/\/)?)?(((([*A-Za-z-]+)\.\*)?[^\*/:]+))?(:(\d+))?(\/.*)?');
+        let matches = regex.exec(patternStr);
         if (matches === undefined || matches.length != 11) {
-            Log.E(TAG, 'Failed to parse pattern: ' + pattern);
+            Log.E(TAG, 'Failed to parse patternStr: ' + patternStr);
             return;
         }
         let schema = matches[2];

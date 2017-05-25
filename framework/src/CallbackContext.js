@@ -24,16 +24,31 @@ const PluginResult = require('./PluginResult');
 class CallbackContext {
     constructor(callbackId) {
         this._callbackId = callbackId;
+        this._keepCallback = false;
     }
 
     success(retValue) {
         let pluginResult = new PluginResult(PluginResult.Status.OK, retValue);
+        pluginResult.keepCallback = this._keepCallback;
         this.sendPluginResult(pluginResult);
     }
 
     error(errorMsg) {
         let pluginResult = new PluginResult(PluginResult.Status.ERROR, errorMsg);
+        pluginResult.keepCallback = this._keepCallback;
         this.sendPluginResult(pluginResult);
+    }
+
+    set keepCallback(keep) {
+        this._keepCallback = keep;
+    }
+
+    get keepCallback() {
+        return this._keepCallback;
+    }
+
+    get callbackId() {
+        return this._callbackId;
     }
 
     sendPluginResult(result) {

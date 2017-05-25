@@ -33,6 +33,8 @@ function Entry(path, onload) {
 let pluginModulePath = Path.join(__dirname, 'Plugin');
 let logModulePath = Path.join(__dirname, 'Log');
 let workerBasePath = Path.join(__dirname, 'worker');
+let pluginManagerModulePath = Path.join(__dirname, 'PluginManager');
+let pluginResultModulePath = Path.join(__dirname, 'PluginResult');
 
 // TODO:
 // Hook node module require
@@ -55,6 +57,10 @@ function hookRequire() {
 
         if (path === 'Plugin') {
             return _require(main, pluginModulePath);
+        } else if (path === 'PluginManager') {
+            return _require(main, pluginManagerModulePath);
+        } else if (path === 'PluginResult') {
+            return _require(main, pluginResultModulePath);
         } else if (path === 'Log') {
             return _require(main, logModulePath);
         } else if (path === 'WorkerPool' || path === 'Task') {
@@ -264,7 +270,7 @@ class PluginManager {
             if (plugin !== null) {
                 let allowed = plugin.shouldAllowNavigation(url);
                 if (allowed !== undefined) {
-                    Log.V(TAG, 'shouldAllowNavigation result:', allowed, ' for:' , key);
+                    Log.V(TAG, 'shouldAllowNavigation result:', allowed, ' for:' , key, 'url:', url);
                     return allowed;
                 }
             }
