@@ -49,7 +49,7 @@ module.exports = {
         function callback(result, callbackId) {
             result = result || {};
             var status = result.status || cordova.callbackStatus.ERROR;
-            var retValue = result.retValue || '';
+            var retValue = (result.retValue === undefined) ? '': result.retValue;
             var keepCallback = result.keepCallback || false;
             var isSuccess = false;
             if (status == cordova.callbackStatus.OK ||

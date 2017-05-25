@@ -39,6 +39,10 @@ class CordovaEmbedded extends Page {
         this.window.addChild(this._cordovaWebView);
         let self = this;
         function success(config) {
+            // Init userAgent
+            let overrideUserAgent = config.getPreferenceValue('overrideUserAgent', '');
+            let appendUserAgent = config.getPreferenceValue('appendUserAgent', '');
+            self.initUserAgent(overrideUserAgent, appendUserAgent);
             // Load the content path with agil-webview mode
             let href = config.contentPath || 'index.html';
             self._cordovaWebView.url = Path.join('res', 'asset', href);
@@ -53,6 +57,16 @@ class CordovaEmbedded extends Page {
         }
         ConfigHelper.readConfig(success, error);
         this._cordovaWebView.onCreate();
+    }
+
+    initUserAgent(overrideUserAgent, appendUserAgent) {
+        if (overrideUserAgent) {
+            this._cordovaWebView.settings.userAgentOverride = overrideUserAgent;
+        } else if (appendUserAgent) {
+            let originalUA = this._cordovaWebView.settings.userAgentOverride;
+            let newUA = originalUA + ' ' + appendUserAgent;
+            this._cordovaWebView.settings.userAgentOverride = newUA;
+        }
     }
 
     initWindow(fullscreen, orientation) {
