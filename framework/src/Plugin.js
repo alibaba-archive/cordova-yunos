@@ -186,6 +186,18 @@ class Plugin {
     shouldAllowNavigation(url) {
         return undefined;
     }
+
+    /**
+     * Notified when the frame of url is visually not empty.
+     */
+    onLoadVisuallyCommitted(url) {
+    }
+
+    /**
+     * Notified when the orientation change.
+     */
+    onOrientationChange(orientation) {
+    }
 }
 
 module.exports = Plugin;

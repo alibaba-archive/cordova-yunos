@@ -76,5 +76,9 @@ class CordovaWebViewClient extends WebViewClient {
     onPageStarted(webView, url) {
         pluginManager.onReset();
     }
+
+    onLoadVisuallyCommitted(webView, url) {
+        pluginManager.onLoadVisuallyCommitted(url);
+    }
 }
 module.exports = CordovaWebViewClient;

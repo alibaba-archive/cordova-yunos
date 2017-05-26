@@ -170,7 +170,12 @@ class PluginManager {
                 plugin.config = this._config;
                 plugin.page = this._page;
                 plugin.webview = this._webview;
-                plugin.privateInitialize(service);
+                try {
+                    plugin.privateInitialize(service);
+                } catch(e) {
+                    Log.E(TAG, 'Failed to initialize Plugin:', e);
+                    return;
+                }
                 this._pluginMap.put(service, plugin);
             }
         }
@@ -380,6 +385,14 @@ class PluginManager {
 
     onReset() {
         this.callPluginsEvent('onReset');
+    }
+
+    onLoadVisuallyCommitted(url) {
+        this.callPluginsEvent('onLoadVisuallyCommitted', url);
+    }
+
+    onOrientationChange(orientation) {
+        this.callPluginsEvent('onOrientationChange', orientation);
     }
 }
 

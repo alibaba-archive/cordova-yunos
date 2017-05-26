@@ -24,6 +24,7 @@ const Page = require('yunos/page/Page');
 
 const ConfigHelper = require('../CordovaLib/ConfigHelper');
 const CordovaWebView = require('../CordovaLib/CordovaWebView');
+const pluginManager = require('../CordovaLib/PluginManager').getInstance();
 const Log = require('../CordovaLib/Log');
 const TAG = 'CordovaEmbedded';
 
@@ -31,12 +32,12 @@ class CordovaEmbedded extends Page {
     onCreate() {
         Log.setLogLevel('MyEmbeddedCordovaApp', 'VERBOSE');
         this._cordovaWebView = new CordovaWebView(this);
-        this._cordovaWebView.initCordova(this);
         // Set log name and level
         this._cordovaWebView.width = this.window.width;
         this._cordovaWebView.height = this.window.height;
         this._cordovaWebView.top = 0;
         this.window.addChild(this._cordovaWebView);
+        this._cordovaWebView.initCordova(this);
         let self = this;
         function success(config) {
             // Init userAgent
@@ -100,6 +101,7 @@ class CordovaEmbedded extends Page {
     onOrientationChange(orientation) {
         this._cordovaWebView.width = this.window.width;
         this._cordovaWebView.height = this.window.height;
+        pluginManager.onOrientationChange(orientation);
     }
 
     // The event is fired when the page instance is shown.
