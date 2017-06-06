@@ -46,7 +46,7 @@ describe("create methods", function () {
         }
 
         var tests = [
-            new copyInfo("-rf", "framework/src/", "CordovaLib"),
+            new copyInfo("-rf", "framework/src", "CordovaLib"),
             new copyInfo("-f", "bin/templates/project/.jsbeautifyrc", "."),
             new copyInfo("-f", "bin/templates/project/.tern-project", "."),
             new copyInfo("-f", "bin/templates/project/.yunos-project", "."),

@@ -461,7 +461,7 @@ function uint8ToBase64(rawData) {
 
 });
 
-// file: /Users/guangzhen/Desktop/cordova/cordova-yunos/cordova-js-src/builder.js
+// file: D:/cygwin64/home/xianghong.jxh/cordova-yunos/cordova-js-src/builder.js
 define("cordova/builder", function(require, exports, module) {
 
 /*
@@ -853,7 +853,7 @@ module.exports = channel;
 
 });
 
-// file: /Users/guangzhen/Desktop/cordova/cordova-yunos/cordova-js-src/exec.js
+// file: D:/cygwin64/home/xianghong.jxh/cordova-yunos/cordova-js-src/exec.js
 define("cordova/exec", function(require, exports, module) {
 
 /*jslint sloppy:true, plusplus:true*/
@@ -1380,7 +1380,7 @@ exports.reset();
 
 });
 
-// file: /Users/guangzhen/Desktop/cordova/cordova-yunos/cordova-js-src/platform.js
+// file: D:/cygwin64/home/xianghong.jxh/cordova-yunos/cordova-js-src/platform.js
 define("cordova/platform", function(require, exports, module) {
 
 const BACK_KEYCODE = 27;
@@ -1482,7 +1482,7 @@ function onMessageFromNative(msg) {
 
 });
 
-// file: /Users/guangzhen/Desktop/cordova/cordova-yunos/cordova-js-src/plugin/yunos/app.js
+// file: D:/cygwin64/home/xianghong.jxh/cordova-yunos/cordova-js-src/plugin/yunos/app.js
 define("cordova/plugin/yunos/app", function(require, exports, module) {
 
 var exec = require('cordova/exec');
@@ -1923,7 +1923,7 @@ utils.alert = function(msg) {
 
 });
 
-// file: /Users/guangzhen/Desktop/cordova/cordova-yunos/cordova-js-src/yunos/TaskQueue.js
+// file: D:/cygwin64/home/xianghong.jxh/cordova-yunos/cordova-js-src/yunos/TaskQueue.js
 define("cordova/yunos/TaskQueue", function(require, exports, module) {
 
 var resolvedPromise = typeof Promise === 'undefined' ? null : Promise.resolve();
@@ -1984,12 +1984,18 @@ module.exports = {
 
 });
 
-// file: /Users/guangzhen/Desktop/cordova/cordova-yunos/cordova-js-src/yunos/bridgeimpl.js
+// file: D:/cygwin64/home/xianghong.jxh/cordova-yunos/cordova-js-src/yunos/bridgeimpl.js
 define("cordova/yunos/bridgeimpl", function(require, exports, module) {
 
 var isDomono = yunos !== undefined && yunos.require !== undefined;
 var base64 = require('cordova/base64');
 var utils = require('cordova/utils');
+
+// This should keep same with PluginResult's MessageType
+const MessageType = {
+    MESSAGE_TYPE_ARRAYBUFFER: 1,
+    MESSAGE_TYPE_STRING:2
+};
 
 module.exports = {
     pluginManager: undefined,
@@ -2066,13 +2072,26 @@ module.exports = {
             console.error(e);
             return;
         }
+        switch (resultJson.messageType) {
+            case MessageType.MESSAGE_TYPE_ARRAYBUFFER:
+                resultJson.retValue = base64.toArrayBuffer(resultJson.retValue);
+                break;
+            case MessageType.MESSAGE_TYPE_STRING:
+                var arrayBuffer = base64.toArrayBuffer(resultJson.retValue);
+                var view = new Uint8Array(arrayBuffer);
+                var decoder = new TextDecoder();
+                resultJson.retValue = decoder.decode(view);
+                break;
+            default:
+                break;
+        }
         this.onNodeMessageReceived(resultJson, callbackId);
     }
 };
 
 });
 
-// file: /Users/guangzhen/Desktop/cordova/cordova-yunos/cordova-js-src/yunos/bridgeproxy.js
+// file: D:/cygwin64/home/xianghong.jxh/cordova-yunos/cordova-js-src/yunos/bridgeproxy.js
 define("cordova/yunos/bridgeproxy", function(require, exports, module) {
 
 var cordova = require('cordova');
@@ -2123,7 +2142,7 @@ module.exports = {
 
 });
 
-// file: /Users/guangzhen/Desktop/cordova/cordova-yunos/cordova-js-src/yunos/pluginmanagerproxy.js
+// file: D:/cygwin64/home/xianghong.jxh/cordova-yunos/cordova-js-src/yunos/pluginmanagerproxy.js
 define("cordova/yunos/pluginmanagerproxy", function(require, exports, module) {
 
 var bridgeProxy = require('cordova/yunos/bridgeproxy');

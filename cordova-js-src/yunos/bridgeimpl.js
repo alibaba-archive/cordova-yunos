@@ -23,6 +23,12 @@ var isDomono = yunos !== undefined && yunos.require !== undefined;
 var base64 = require('cordova/base64');
 var utils = require('cordova/utils');
 
+// This should keep same with PluginResult's MessageType
+const MessageType = {
+    MESSAGE_TYPE_ARRAYBUFFER: 1,
+    MESSAGE_TYPE_STRING:2
+};
+
 module.exports = {
     pluginManager: undefined,
     onNodeMessageReceived: undefined,
@@ -97,6 +103,19 @@ module.exports = {
             console.error('Parse node return message failed:');
             console.error(e);
             return;
+        }
+        switch (resultJson.messageType) {
+            case MessageType.MESSAGE_TYPE_ARRAYBUFFER:
+                resultJson.retValue = base64.toArrayBuffer(resultJson.retValue);
+                break;
+            case MessageType.MESSAGE_TYPE_STRING:
+                var arrayBuffer = base64.toArrayBuffer(resultJson.retValue);
+                var view = new Uint8Array(arrayBuffer);
+                var decoder = new TextDecoder();
+                resultJson.retValue = decoder.decode(view);
+                break;
+            default:
+                break;
         }
         this.onNodeMessageReceived(resultJson, callbackId);
     }

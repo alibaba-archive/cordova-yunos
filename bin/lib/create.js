@@ -38,8 +38,7 @@ function copyJsAndLibrary(project_path, shared) {
         fs.symlinkSync(path.join(ROOT, 'bin', 'templates', 'project', 'spec'), path.join(project_path, 'spec'));
         fs.symlinkSync(path.join(ROOT, 'bin', 'templates', 'project', 'test'), path.join(project_path, 'test'));
     } else {
-        shjs.mkdir('-p', cordovaLibPath);
-        shjs.cp('-rf', path.join(ROOT, 'framework', 'src/'), cordovaLibPath);
+        shjs.cp('-rf', path.join(ROOT, 'framework', 'src'), cordovaLibPath);
         shjs.cp('-rf', path.join(ROOT, 'bin', 'templates', 'project', 'libs'), path.join(project_path));
         shjs.cp('-rf', path.join(ROOT, 'bin', 'templates', 'project', 'spec'), path.join(project_path));
         shjs.cp('-rf', path.join(ROOT, 'bin', 'templates', 'project', 'test'), path.join(project_path));
