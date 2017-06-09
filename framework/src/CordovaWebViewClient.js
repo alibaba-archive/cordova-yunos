@@ -19,7 +19,7 @@
  *
 */
 
-const WebViewClient = require("yunos/web/WebViewClient");
+const WebViewClient = require('yunos/web/WebViewClient');
 const Log = require('../CordovaLib/Log');
 const pluginManager = require('../CordovaLib/PluginManager').getInstance();
 
@@ -30,6 +30,8 @@ class CordovaWebViewClient extends WebViewClient {
         super();
         this._webview = webview;
         this._page = page;
+        this._LoadUrlTimeoutValue = 20000;
+        this._timer = null;
     }
 
     showWebPage(url, openExternal, clearHistory, params) {
@@ -49,11 +51,11 @@ class CordovaWebViewClient extends WebViewClient {
             }
         }
         if (pluginManager.shouldOpenExternalUrl(url) === false) {
-            LOG.W(TAG, "showWebPage: Refusing to send intent for URL since it is not in the <allow-intent> whitelist. URL=" + url);
+            LOG.W(TAG, 'showWebPage: Refusing to send intent for URL since it is not in the <allow-intent> whitelist. URL=' + url);
             return;
         }
-        let PageLink = require("yunos/page/PageLink");
-        let linkObject = new PageLink("page://ucbrowser.yunos.com/browser");
+        let PageLink = require('yunos/page/PageLink');
+        let linkObject = new PageLink('page://ucbrowser.yunos.com/browser');
         let data = {url: url};
         linkObject.data = JSON.stringify(data);
         this._page.sendLink(linkObject);
@@ -69,16 +71,42 @@ class CordovaWebViewClient extends WebViewClient {
             this.showWebPage(url, true, false, null);
             return true;
         }
-        Log.W(TAG, "Blocked (possibly sub-frame) navigation to non-allowed URL: " + url);
+        Log.W(TAG, 'Blocked (possibly sub-frame) navigation to non-allowed URL: ' + url);
         return true;
     }
 
     onPageStarted(webView, url) {
+        this._timer = setTimeout(function() {
+            let data = {
+                errorCode: -6,
+                description: 'The connection to the server was unsuccessful.',
+                url: url
+            };
+            pluginManager.onReceivedError(data);
+        }, this.LoadUrlTimeoutValue);
         pluginManager.onReset();
+    }
+
+    onPageFinished(webView, url) {
+        this.clearLoadTimeoutTimer();
     }
 
     onLoadVisuallyCommitted(webView, url) {
         pluginManager.onLoadVisuallyCommitted(url);
+    }
+
+    clearLoadTimeoutTimer() {
+        if (this._timer) {
+            clearTimeout(this._timer);
+        }
+    }
+
+    set LoadUrlTimeoutValue(LoadUrlTimeoutValue) {
+        this._LoadUrlTimeoutValue = LoadUrlTimeoutValue;
+    }
+
+    get LoadUrlTimeoutValue() {
+        return this._LoadUrlTimeoutValue;
     }
 }
 module.exports = CordovaWebViewClient;

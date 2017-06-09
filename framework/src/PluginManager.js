@@ -394,6 +394,10 @@ class PluginManager {
     onOrientationChange(orientation) {
         this.callPluginsEvent('onOrientationChange', orientation);
     }
+
+    onReceivedError(data) {
+        this.callPluginsEvent('onReceivedError', data);
+    }
 }
 
 module.exports = PluginManager;

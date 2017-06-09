@@ -87,6 +87,9 @@ class CordovaWebView extends WebView {
         let self = this;
         this.client = new CordovaWebViewClient(this, page);
         function success(config) {
+            // Init LoadUrlTimeoutValue
+            let LoadUrlTimeoutValue = config.getPreferenceValue('loadUrlTimeoutValue', 20000);
+            self.client.LoadUrlTimeoutValue = LoadUrlTimeoutValue;
             // Set config to PluginManager
             pluginManager.config = config;
             // Set page to PluginManager

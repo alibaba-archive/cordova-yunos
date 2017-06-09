@@ -44,6 +44,11 @@ class CordovaEmbedded extends Page {
             let overrideUserAgent = config.getPreferenceValue('overrideUserAgent', '');
             let appendUserAgent = config.getPreferenceValue('appendUserAgent', '');
             self.initUserAgent(overrideUserAgent, appendUserAgent);
+            // Init the errorUrl
+            let errorUrl = config.getPreferenceValue('errorUrl', '');
+            if (errorUrl) {
+                self._cordovaWebView.settings.errorPage = errorUrl;
+            }
             // Load the content path with agil-webview mode
             let href = config.contentPath || 'index.html';
             self._cordovaWebView.url = Path.join('res', 'asset', href);

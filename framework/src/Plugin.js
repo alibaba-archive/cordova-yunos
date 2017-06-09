@@ -198,6 +198,12 @@ class Plugin {
      */
     onOrientationChange(orientation) {
     }
+
+    /**
+     * Notified The url that failed to load.
+     */
+    onReceivedError(data) {
+    }
 }
 
 module.exports = Plugin;
