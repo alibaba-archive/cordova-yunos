@@ -43,15 +43,19 @@ class CordovaWebViewClient extends WebViewClient {
         // If loading into our webview
         if (openExternal === false) {
             if (pluginManager.shouldAllowNavigation(url) === true) {
-                //TODO: load url in this webview and treat with load timeout
-                Log.E(TAG, 'Not implemented');
+                if (url === 'about:blank' || url.startsWith('javascript:')) {
+                    this._webview.url = url;
+                    return;
+                }
+                pluginManager.init();
+                this._webview.url = url;
                 return;
             } else {
                 Log.W(TAG, 'showWebPage: Refusing to load URL into webview since it is not in the <allow-navigation> whitelist. URL=', url);
             }
         }
         if (pluginManager.shouldOpenExternalUrl(url) === false) {
-            LOG.W(TAG, 'showWebPage: Refusing to send intent for URL since it is not in the <allow-intent> whitelist. URL=' + url);
+            Log.W(TAG, 'showWebPage: Refusing to send intent for URL since it is not in the <allow-intent> whitelist. URL=' + url);
             return;
         }
         let PageLink = require('yunos/page/PageLink');
