@@ -44,10 +44,10 @@ class PluginResult {
     constructor(status_, retValue_) {
         // If retValue_ is string, revert it as base64 format to avoid some reserved
         // characters cann't be recognized when json parses it.
-        if (retValue_ instanceof ArrayBuffer || typeof retValue_ === 'string') {
-            this.messageType = retValue_ instanceof ArrayBuffer ?
+        let Buffer = require('buffer').Buffer;
+        if (retValue_ instanceof Buffer || retValue_ instanceof ArrayBuffer|| typeof retValue_ === 'string') {
+            this.messageType = (retValue_ instanceof Buffer || retValue_ instanceof ArrayBuffer)?
                 MessageType.MESSAGE_TYPE_ARRAYBUFFER: MessageType.MESSAGE_TYPE_STRING;
-            let Buffer = require('buffer').Buffer;
             let buffer = new Buffer(retValue_);
             retValue_ = buffer.toString('base64');
         }
