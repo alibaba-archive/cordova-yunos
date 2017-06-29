@@ -136,11 +136,12 @@ class WorkerPool {
 
     getAvailableWorker() {
         // Try to get idle worker from pool
-        this._activeWorkers.forEach(function(e) {
+        for (let i = 0; i < this._activeWorkers.length; ++i) {
+            let e = this._activeWorkers[i];
             if (!e.isBusy) {
                 return e;
             }
-        });
+        }
 
         // Make sure the workers number lower than max worker number.
         // If current workers are busy, create another new worker
@@ -148,6 +149,7 @@ class WorkerPool {
             return this.createWorker();
         }
 
+        Log.D(TAG, 'No available worker in pool now');
         return null;
     }
 
