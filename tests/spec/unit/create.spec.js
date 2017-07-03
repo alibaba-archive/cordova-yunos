@@ -50,13 +50,12 @@ describe("create methods", function () {
             new copyInfo("-f", "bin/templates/project/.jsbeautifyrc", "."),
             new copyInfo("-f", "bin/templates/project/.tern-project", "."),
             new copyInfo("-f", "bin/templates/project/.yunos-project", "."),
-            new copyInfo("-f", "bin/templates/project/manifest.json", "."),
+            new copyInfo("-rf", "bin/templates/project/", "."),
             new copyInfo("-r", "bin/templates/cordova", "."),
             new copyInfo("-f", "cordova-lib/cordova.js", "platform_www"),
             new copyInfo("-rf", "cordova-js-src", "platform_www"),
             new copyInfo("-f", "cordova-lib/cordova.js", "res/asset"),
             new copyInfo("-r", "node_modules", "cordova"),
-            new copyInfo("-r", "bin/templates/cordova", "."),
             new copyInfo("", "bin/lib/check_reqs.js", "cordova/lib")
         ];
 
@@ -82,10 +81,7 @@ describe("create methods", function () {
         }
 
         var tests = [
-            new symblinkInfo("framework/src", "CordovaLib"),
-            new symblinkInfo("bin/templates/project/libs", "libs"),
-            new symblinkInfo("bin/templates/project/spec", "spec"),
-            new symblinkInfo("bin/templates/project/test", "test")
+            new symblinkInfo("framework/src", "CordovaLib")
         ];
 
         tests.forEach(function(obj) {

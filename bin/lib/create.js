@@ -32,19 +32,29 @@ var CordovaError = require('cordova-common').CordovaError;
 function copyJsAndLibrary(project_path, shared) {
     shjs.mkdir('-p', project_path);
     var cordovaLibPath = path.join(project_path, 'CordovaLib');
+    // Don't fail if there are no old files or links.
+    setShellFatal(false, function() {
+        var wasSymlink = true;
+        try {
+            // Delete the symlink if it was one.
+            fs.unlinkSync(cordovaLibPath);
+        } catch (e) {
+            wasSymlink = false;
+        }
+        // Delete old library project if it existed.
+        if (shared || !wasSymlink) {
+            shjs.rm('-rf', cordovaLibPath);
+        }
+    });
+
     if (shared) {
         fs.symlinkSync(path.join(ROOT, 'framework', 'src'), cordovaLibPath);
-        fs.symlinkSync(path.join(ROOT, 'bin', 'templates', 'project', 'libs'), path.join(project_path, 'libs'));
-        fs.symlinkSync(path.join(ROOT, 'bin', 'templates', 'project', 'spec'), path.join(project_path, 'spec'));
-        fs.symlinkSync(path.join(ROOT, 'bin', 'templates', 'project', 'test'), path.join(project_path, 'test'));
     } else {
         shjs.cp('-rf', path.join(ROOT, 'framework', 'src'), cordovaLibPath);
-        shjs.cp('-rf', path.join(ROOT, 'bin', 'templates', 'project', 'libs'), path.join(project_path));
-        shjs.cp('-rf', path.join(ROOT, 'bin', 'templates', 'project', 'spec'), path.join(project_path));
-        shjs.cp('-rf', path.join(ROOT, 'bin', 'templates', 'project', 'test'), path.join(project_path));
     }
-    shjs.cp('-rf', path.join(ROOT, 'bin', 'templates', 'project', 'src'), path.join(project_path));
-    shjs.cp('-rf', path.join(ROOT, 'bin', 'templates', 'project', 'res'), path.join(project_path));
+
+    // Copy template/project
+    shjs.cp('-rf', path.join(ROOT, 'bin', 'templates', 'project/'), path.join(project_path));
 
     // Copy cordova.js file
     var srcCordovaJSPath = path.join(ROOT, 'cordova-lib', 'cordova.js');
@@ -54,10 +64,6 @@ function copyJsAndLibrary(project_path, shared) {
     shjs.mkdir('-p', path.join(project_path, 'platform_www'));
     shjs.cp('-f', srcCordovaJSPath, path.join(project_path, 'platform_www'));
     shjs.cp('-rf', path.join(ROOT, 'cordova-js-src'), path.join(project_path, 'platform_www'));
-
-    // Copy manifest.json
-    var srcManifestPath = path.join(ROOT, 'bin', 'templates', 'project', 'manifest.json');
-    shjs.cp('-f', srcManifestPath, project_path);
 
     // Copy the files for YunOS IDE
     shjs.cp('-f', path.join(ROOT, 'bin', 'templates', 'project', '.eslintrc'), project_path);
