@@ -25,7 +25,7 @@ var fs         = require('fs'),
     args       = process.argv,
     path       = require('path'),
     ROOT       = path.join(__dirname, '..', '..'),
-    check_reqs = require('./check_reqs');
+    check_reqs = require('../templates/cordova/lib/check_reqs');
 
 var CordovaError = require('cordova-common').CordovaError;
 
@@ -81,8 +81,6 @@ function copyScripts(project_path) {
     //copy required node_modules
     shjs.cp('-r', path.join(ROOT, 'node_modules'), path.join(project_path,'cordova'));
 
-    //copy check_reqs file
-    shjs.cp( path.join(ROOT, 'bin', 'lib', 'check_reqs.js'), path.join(project_path,'cordova', 'lib'));
 
     //copy cordova directory
     shjs.cp('-r', path.join(ROOT, 'bin', 'templates', 'cordova'), project_path);
@@ -91,7 +89,7 @@ function copyScripts(project_path) {
         'run',
         'build',
         'clean',
-        'version',
+        'version'
     ].forEach(function(f) {
          shjs.chmod(755, path.join(project_path, 'cordova', f));
     });

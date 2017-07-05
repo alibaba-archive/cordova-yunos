@@ -26,11 +26,10 @@ var ROOT = path.join(__dirname, '..', '..', '..');
 
 describe("create methods", function () {
     var events = {emit: function() {}};
-    var exists;
 
     beforeEach(function () {
         spyOn(events, 'emit');
-        exists = spyOn(fs, 'existsSync').and.returnValue(true);
+        spyOn(fs, 'existsSync').and.returnValue(false);
         spyOn(shell, 'cp');
         spyOn(shell, 'mkdir');
         spyOn(shell, 'chmod');
@@ -38,7 +37,16 @@ describe("create methods", function () {
         spyOn(fs, 'symlinkSync');
     });
 
-    function checkCopiedFiles(projectPath, extras) {
+    function checkRemoveFiles(projectPath) {
+        function removeInfo(oper, dest) {
+            this._oper = oper;
+            this._dest = path.join(projectPath, dest);
+        }
+        var test = new removeInfo('-rf', 'CordovaLib');
+        expect(shell.rm).toHaveBeenCalledWith(test._oper, test._dest);
+    }
+
+    function checkCopiedFiles(projectPath, shared) {
         function copyInfo(oper, source, dest) {
             this._oper = oper;
             this._source = path.join(ROOT, source);
@@ -46,7 +54,6 @@ describe("create methods", function () {
         }
 
         var tests = [
-            new copyInfo("-rf", "framework/src", "CordovaLib"),
             new copyInfo("-f", "bin/templates/project/.jsbeautifyrc", "."),
             new copyInfo("-f", "bin/templates/project/.tern-project", "."),
             new copyInfo("-f", "bin/templates/project/.yunos-project", "."),
@@ -55,14 +62,11 @@ describe("create methods", function () {
             new copyInfo("-f", "cordova-lib/cordova.js", "platform_www"),
             new copyInfo("-rf", "cordova-js-src", "platform_www"),
             new copyInfo("-f", "cordova-lib/cordova.js", "res/asset"),
-            new copyInfo("-r", "node_modules", "cordova"),
-            new copyInfo("", "bin/lib/check_reqs.js", "cordova/lib")
+            new copyInfo("-r", "node_modules", "cordova")
         ];
 
-        if (extras && extras instanceof Array) {
-            extras.forEach(function(obj) {
-                tests.push(obj);
-            });
+        if (!shared) {
+            tests.push(new copyInfo("-rf", "framework/src", "CordovaLib"));
         }
 
         tests.forEach(function(obj) {
@@ -105,7 +109,6 @@ describe("create methods", function () {
     }
 
     it('spec#1 create invalidate project', function(done) {
-        exists.and.returnValue(false);
         expect(function () { create.create(); }).toThrow();
 
         var rejectSpy = jasmine.createSpy();
@@ -128,13 +131,15 @@ describe("create methods", function () {
             appName = obj.APP_NAME;
         });
 
-        exists.and.returnValue(false);
+        spyOn(fs, 'unlinkSync').and.throwError('there is no linked file');
+
         var rejectSpy = jasmine.createSpy();
         var config = {name: function() { return 'testname'; },
             packageName: function() { return 'com.app.test'; }};
         create.create('test', config, null, events).fail(rejectSpy).done(function() {
             expect(rejectSpy).not.toHaveBeenCalled();
             checkCreateDir("test");
+            checkRemoveFiles("test");
             checkCopiedFiles("test");
             expect(fs.readFileSync).toHaveBeenCalled();
             expect(fs.writeFileSync).toHaveBeenCalled();
@@ -154,7 +159,6 @@ describe("create methods", function () {
             appName = obj.APP_NAME;
         });
 
-        exists.and.returnValue(false);
         var rejectSpy = jasmine.createSpy();
         var options = {link: true};
         var config = {name: function() { return 'test'; },
@@ -163,6 +167,8 @@ describe("create methods", function () {
             expect(rejectSpy).not.toHaveBeenCalled();
             checkCreateDir("test");
             checkLinkedFiles("test");
+            checkCopiedFiles("test", options.link);
+            checkRemoveFiles("test");
             expect(fs.readFileSync).toHaveBeenCalled();
             expect(fs.writeFileSync).toHaveBeenCalled();
             expect(appName).toBe('test');
@@ -171,7 +177,6 @@ describe("create methods", function () {
     });
 
     it('spec#4 update valid project', function(done) {
-        exists.and.returnValue(false);
         var rejectSpy = jasmine.createSpy();
         create.update('test', null, events).fail(rejectSpy).done(function() {
             expect(rejectSpy).not.toHaveBeenCalled();
@@ -181,4 +186,53 @@ describe("create methods", function () {
             done();
         });
     });
+
+    it('spec#5 update valid project with link', function(done) {
+        var rejectSpy = jasmine.createSpy();
+        var options = {link: true};
+        create.update('test', options, events).fail(rejectSpy).done(function() {
+            expect(rejectSpy).not.toHaveBeenCalled();
+            expect(shell.rm).toHaveBeenCalledWith("-rf", "test/cordova");
+            checkCreateDir("test");
+            checkRemoveFiles("test");
+            checkCopiedFiles("test", options.link);
+            checkLinkedFiles("test");
+            done();
+        });
+    });
+
+    it('spec#6 create valid project and then update the project', function(done) {
+        spyOn(fs, 'readFileSync').and.callFake(function() {
+            return '{}';
+        });
+
+        var appName;
+        spyOn(fs, 'writeFileSync').and.callFake(function(path, str) {
+            var obj = JSON.parse(str);
+            appName = obj.APP_NAME;
+        });
+
+        var rejectSpy = jasmine.createSpy();
+        var config = {name: function() { return 'testname'; },
+            packageName: function() { return 'com.app.test'; }};
+        create.create('test', config, null, events).fail(rejectSpy).done(function() {
+            expect(rejectSpy).not.toHaveBeenCalled();
+            checkCreateDir("test");
+            checkCopiedFiles("test");
+            expect(fs.readFileSync).toHaveBeenCalled();
+            expect(fs.writeFileSync).toHaveBeenCalled();
+            expect(appName).toBe('testname');
+        });
+
+        var options = {link: true};
+        create.update('test', options, events).fail(rejectSpy).done(function() {
+            expect(rejectSpy).not.toHaveBeenCalled();
+            expect(shell.rm).toHaveBeenCalledWith("-rf", "test/cordova");
+            checkCreateDir("test");
+            checkLinkedFiles("test");
+            checkCopiedFiles("test", options.link);
+            done();
+        });
+    });
+
 });

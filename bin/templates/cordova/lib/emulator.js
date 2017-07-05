@@ -66,7 +66,7 @@ module.exports.wait_for_boot = function(emulator_id, time_remaining) {
 };
 
 module.exports.resolveTarget = function(target) {
-    return Q.resolve();
+    return Q.reject('emulator is not support on yunos yet');
 };
 
 /*
