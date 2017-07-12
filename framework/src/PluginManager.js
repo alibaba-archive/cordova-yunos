@@ -231,7 +231,7 @@ class PluginManager {
         if (url.startsWith('file://')) {
             return false;
         }
-        return true;
+        return false;
     }
 
     /**
