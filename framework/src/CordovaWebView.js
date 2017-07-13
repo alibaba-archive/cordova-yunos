@@ -26,6 +26,8 @@ const CoreYunOS = require('./CoreYunOS');
 const CordovaWebViewClient = require('./CordovaWebViewClient');
 const Log = require('./Log');
 const pluginManager = require('./PluginManager').getInstance();
+const Page = require('yunos/page/Page');
+const Path = require('path');
 
 const TAG = 'CordovaWebView';
 
@@ -34,6 +36,8 @@ class CordovaWebView extends WebView {
         super(options);
         this.boundKeys = [];
         this.appPlugin = null;
+        this.window = null;
+        this.page = null;
     }
 
     initWebViewBridge() {
@@ -83,9 +87,49 @@ class CordovaWebView extends WebView {
         this.addJavascriptInterface(cordovaNodeBridge, '_cordovaNodeBridge', ['exec']);
     }
 
-    initCordova(page) {
+    initUserAgent(overrideUserAgent, appendUserAgent) {
+        if (overrideUserAgent) {
+            this.settings.userAgentOverride = overrideUserAgent;
+        } else if (appendUserAgent) {
+            let originalUA = this.settings.userAgentOverride;
+            let newUA = originalUA + ' ' + appendUserAgent;
+            this.settings.userAgentOverride = newUA;
+        }
+    }
+
+    initWindow(fullscreen, orientation) {
+        if (fullscreen === 'true') {
+            this.window.fullScreenMode = true;
+        } else if (fullscreen === 'false') {
+            this.window.fullScreenMode = false;
+        } else {
+            Log.E(TAG, 'Invalid fullscreen preference:', fullscreen);
+        }
+        let orientationFlag = Page.Orientation.Portrait;
+        switch(orientation) {
+            case 'all':
+                this.page.autoOrientation = true;
+                break;
+            case 'default':
+                orientationFlag = Page.Orientation.Portrait;
+                break;
+            case 'landscape':
+                orientationFlag = Page.Orientation.LandscapeLeft;
+                break;
+            case 'portrait':
+                orientationFlag = Page.Orientation.Portrait;
+                break;
+            default:
+                Log.E(TAG, 'Invalid orientation preference:', orientation);
+        }
+        this.page.orientation = orientationFlag;
+    }
+
+    initCordova(page, window) {
         let self = this;
         this.client = new CordovaWebViewClient(this, page);
+        this.page = page;
+        this.window = window;
         function success(config) {
             // Init LoadUrlTimeoutValue
             let LoadUrlTimeoutValue = config.getPreferenceValue('loadUrlTimeoutValue', 20000);
@@ -104,12 +148,38 @@ class CordovaWebView extends WebView {
             pluginManager.onCreate();
             // Expose JS interfaces
             self.initBridge();
+            // Set UserAgent
+            let overrideUserAgent = config.getPreferenceValue('overrideUserAgent', '');
+            let appendUserAgent = config.getPreferenceValue('appendUserAgent', '');
+            self.initUserAgent(overrideUserAgent, appendUserAgent);
+            // Init the errorUrl
+            let errorUrl = config.getPreferenceValue('errorUrl', '');
+            if (errorUrl) {
+                self.settings.errorPage = Path.join('res', 'asset', errorUrl);
+            }
+            // Init fullscreen and orientation
+            let fullscreen = config.getPreferenceValue('fullscreen', false);
+            let orientation = config.getPreferenceValue('orientation', 'portrait');
+            self.initWindow(fullscreen, orientation);
+            // Load the content path with agil-webview mode
+            self.setUrl(config.contentPath);
         }
         function error(msg) {
             Log.E(TAG, 'Failed to get content src:');
             Log.E(TAG, msg);
         }
         ConfigHelper.readConfig(success, error);
+    }
+
+    setUrl(url) {
+        let href = url || 'index.html';
+        this.url = Path.join('res', 'asset', href);
+    }
+
+    onOrientationChange(orientation) {
+        this.width = this.window.width;
+        this.height = this.window.height;
+        pluginManager.onOrientationChange(orientation);
     }
 
     onCreate() {
@@ -161,6 +231,7 @@ class CordovaWebView extends WebView {
             this.goBack();
             return true;
         }
+        this.page.stopPage();
         return false;
     }
 

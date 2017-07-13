@@ -19,12 +19,9 @@
  *
 */
 
-const Path = require('path');
 const Page = require('yunos/page/Page');
 
-const ConfigHelper = require('../CordovaLib/ConfigHelper');
 const CordovaWebView = require('../CordovaLib/CordovaWebView');
-const pluginManager = require('../CordovaLib/PluginManager').getInstance();
 const Log = require('../CordovaLib/Log');
 const TAG = 'CordovaEmbedded';
 
@@ -37,76 +34,12 @@ class CordovaEmbedded extends Page {
         this._cordovaWebView.height = this.window.height;
         this._cordovaWebView.top = 0;
         this.window.addChild(this._cordovaWebView);
-        this._cordovaWebView.initCordova(this);
-        let self = this;
-        function success(config) {
-            // Init userAgent
-            let overrideUserAgent = config.getPreferenceValue('overrideUserAgent', '');
-            let appendUserAgent = config.getPreferenceValue('appendUserAgent', '');
-            self.initUserAgent(overrideUserAgent, appendUserAgent);
-            // Init the errorUrl
-            let errorUrl = config.getPreferenceValue('errorUrl', '');
-            if (errorUrl) {
-                self._cordovaWebView.settings.errorPage = errorUrl;
-            }
-            // Load the content path with agil-webview mode
-            let href = config.contentPath || 'index.html';
-            self._cordovaWebView.url = Path.join('res', 'asset', href);
-            // Init fullscreen and orientation
-            let fullscreen = config.getPreferenceValue('fullscreen', false);
-            let orientation = config.getPreferenceValue('orientation', 'portrait');
-            self.initWindow(fullscreen, orientation);
-        }
-        function error(msg) {
-            Log.E(TAG, 'Failed to get content src:');
-            Log.E(TAG, msg);
-        }
-        ConfigHelper.readConfig(success, error);
+        this._cordovaWebView.initCordova(this, this.window);
         this._cordovaWebView.onCreate();
     }
 
-    initUserAgent(overrideUserAgent, appendUserAgent) {
-        if (overrideUserAgent) {
-            this._cordovaWebView.settings.userAgentOverride = overrideUserAgent;
-        } else if (appendUserAgent) {
-            let originalUA = this._cordovaWebView.settings.userAgentOverride;
-            let newUA = originalUA + ' ' + appendUserAgent;
-            this._cordovaWebView.settings.userAgentOverride = newUA;
-        }
-    }
-
-    initWindow(fullscreen, orientation) {
-        if (fullscreen === 'true') {
-            this.window.fullScreenMode = true;
-        } else if (fullscreen === 'false') {
-            this.window.fullScreenMode = false;
-        } else {
-            Log.E(TAG, 'Invalid fullscreen preference:', fullscreen);
-        }
-        let orientationFlag = Page.Orientation.Portrait;
-        switch(orientation) {
-            case 'all':
-                this.autoOrientation = true;
-                break;
-            case 'default':
-                orientationFlag = Page.Orientation.Portrait;
-                break;
-            case 'landscape':
-                orientationFlag = Page.Orientation.LandscapeLeft;
-                break;
-            case 'portrait':
-                orientationFlag = Page.Orientation.Portrait;
-                break;
-            default:
-                Log.E(TAG, 'Invalid orientation preference:', orientation);
-        }
-        this.orientation = orientationFlag;
-    }
-
     onOrientationChange(orientation) {
-        this._cordovaWebView.width = this.window.width;
-        this._cordovaWebView.height = this.window.height;
-        pluginManager.onOrientationChange(orientation);
+        this._cordovaWebView.onOrientationChange(orientation);
     }
 
     // The event is fired when the page instance is shown.
@@ -150,12 +83,7 @@ class CordovaEmbedded extends Page {
         // backKeyHandled === true: cordova has handled back key event.
         // otherwise, application should handle back key.
         let backKeyHandled = this._cordovaWebView.onBackKey();
-
-        // Cordova omitted back key event, application should quite.
-        if (backKeyHandled === false) {
-            this.stopPage();
-        }
-        return true;
+        return backKeyHandled;
     }
 }
 module.exports = CordovaEmbedded;
