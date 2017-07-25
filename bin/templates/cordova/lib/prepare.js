@@ -110,7 +110,7 @@ module.exports.updatePermissions = function() {
                 }
                 events.forEach(function(event) {
                     // The same event won't add to manifest again.
-                    if (!(page.events.filter(function(e) { return e.name === event; }).length > 0)) {
+                    if (page.events.filter(function(e) { return e.name === event; }).length === 0) {
                         page.events.push({"name": event});
                     }
                 });
@@ -253,8 +253,8 @@ function updateUseragent(platformConfig, manifest) {
         } else {
             manifest.pages[0].extension.web_app.override_user_agent = undefined;
         }
-    } else if (manifest.pages[0].extension !== undefined
-        && manifest.pages[0].extension.web_app !== undefined) {
+    } else if (manifest.pages[0].extension !== undefined &&
+               manifest.pages[0].extension.web_app !== undefined) {
         // update the userAgent preference if it remove from config.xml
         manifest.pages[0].extension.web_app.append_user_agent = undefined;
         manifest.pages[0].extension.web_app.override_user_agent = undefined;
@@ -345,14 +345,15 @@ function updateSplashes(cordovaProject, platformResourcesDir, manifestPath) {
     // TODO: should delete another duplicate item if splash image is under www
     var resourceMap = {};
     var fileName;
+    var targetPath;
     for (var density in yunosSplashes) {
         fileName = 'splashScreen.' + yunosSplashes[density].split('.').pop();
-        var targetPath = path.join(platformResourcesDir, density, fileName);
+        targetPath = path.join(platformResourcesDir, density, fileName);
         resourceMap[targetPath] = yunosSplashes[density];
     }
     if (defaultSplash) {
         fileName = 'splashScreen.' + defaultSplash.split('.').pop();
-        var targetPath = path.join(platformResourcesDir, 'default', fileName);
+        targetPath = path.join(platformResourcesDir, 'default', fileName);
         resourceMap[targetPath] = defaultSplash;
     }
     events.emit('verbose', 'Updating splashes at ' + platformResourcesDir);

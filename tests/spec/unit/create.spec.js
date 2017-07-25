@@ -129,6 +129,7 @@ describe("create methods", function () {
         spyOn(fs, 'writeFileSync').and.callFake(function(path, str) {
             var obj = JSON.parse(str);
             appName = obj.APP_NAME;
+            expect(appName).toBe('testname');
         });
 
         spyOn(fs, 'unlinkSync').and.throwError('there is no linked file');
@@ -143,7 +144,6 @@ describe("create methods", function () {
             checkCopiedFiles("test");
             expect(fs.readFileSync).toHaveBeenCalled();
             expect(fs.writeFileSync).toHaveBeenCalled();
-            expect(appName).toBe('testname');
             done();
         });
     });
@@ -234,5 +234,4 @@ describe("create methods", function () {
             done();
         });
     });
-
 });

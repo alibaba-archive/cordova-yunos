@@ -104,12 +104,20 @@ function setShellFatal(value, func) {
 
 function updateAppName(project_path, app_name) {
     // update page title to string.json
+    // en-US
     var filePath = path.join(project_path, 'res', 'en-US', 'string.json');
     var stringJson = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
     stringJson.APP_NAME = app_name;
     fs.writeFileSync(filePath, JSON.stringify(stringJson, null, 4), 'utf-8');
 
+    // zh-CN
     filePath = path.join(project_path, 'res', 'zh-CN', 'string.json');
+    stringJson = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    stringJson.APP_NAME = app_name;
+    fs.writeFileSync(filePath, JSON.stringify(stringJson, null, 4), 'utf-8');
+
+    // default
+    filePath = path.join(project_path, 'res', 'default', 'string.json');
     stringJson = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
     stringJson.APP_NAME = app_name;
     fs.writeFileSync(filePath, JSON.stringify(stringJson, null, 4), 'utf-8');
