@@ -30,7 +30,8 @@ var fs         = require('fs'),
 var CordovaError = require('cordova-common').CordovaError;
 
 function copyJsAndLibrary(project_path, shared) {
-    shjs.mkdir('-p', project_path);
+    // Copy template/project
+    shjs.cp('-rf', path.join(ROOT, 'bin', 'templates', 'project'), path.join(project_path));
     var cordovaLibPath = path.join(project_path, 'CordovaLib');
     // Don't fail if there are no old files or links.
     setShellFatal(false, function() {
@@ -52,9 +53,6 @@ function copyJsAndLibrary(project_path, shared) {
     } else {
         shjs.cp('-rf', path.join(ROOT, 'framework', 'src'), cordovaLibPath);
     }
-
-    // Copy template/project
-    shjs.cp('-rf', path.join(ROOT, 'bin', 'templates', 'project/'), path.join(project_path));
 
     // Copy cordova.js file
     var srcCordovaJSPath = path.join(ROOT, 'cordova-lib', 'cordova.js');
