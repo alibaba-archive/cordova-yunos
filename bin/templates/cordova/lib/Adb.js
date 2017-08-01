@@ -26,11 +26,11 @@ var CordovaError = require('cordova-common').CordovaError;
 var Adb = {};
 
 function isDevice(line) {
-    return line.match(/\w+\tdevice/) && !line.match(/emulator/);
+    return line.match(/\w+\tdevice/) && !line.match(/emu/);
 }
 
 function isEmulator(line) {
-    return line.match(/device/) && line.match(/emulator/);
+    return line.match(/device/) && line.match(/emu/);
 }
 
 /**

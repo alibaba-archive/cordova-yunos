@@ -73,7 +73,12 @@ module.exports.list_images = function() {
     var emulatorPath = Path.join(yunosPath, 'tools', 'emulator');
     return spawn(emulatorPath, ['-list-avds'])
     .then(function(output) {
-        var response = output.split('\n');
+        var response = [];
+        if (/^win/.test(process.platform)) {
+            response = output.split('\r\n');
+        } else {
+            response = output.split('\n');
+        }
         var emulator_list = [];
         for (var i = 0; i < response.length; i++) {
             var img_obj = {};
@@ -112,12 +117,22 @@ module.exports.list_started = function() {
  */
 module.exports.wait_for_emulator = function(port) {
     var self = this;
-    return Q.delay(CHECK_BOOTED_INTERVAL).then(function() {
-        var emulator_id = 'emulator-' + port;
-        return Adb.shell(emulator_id, 'getprop sys.yunos.boot_completed')
+    return Q.delay(CHECK_BOOTED_INTERVAL)
+    .then(function() {
+        return Adb.devices({emulators: true})
+        .then(function(device_list) {
+            for (var i = 0; i < device_list.length; ++i) {
+                if (device_list[i].indexOf(port) >= 0) {
+                    return device_list[i];
+                }
+            }
+        });
+    })
+    .then(function(target) {
+        return Adb.shell(target, 'getprop sys.yunos.boot_completed')
         .then(function (output) {
             if (output.indexOf('1') >= 0) {
-                return emulator_id;
+                return target;
             }
             return self.wait_for_emulator(port);
         }, function (error) {
@@ -219,7 +234,7 @@ module.exports.start = function(emulator_ID, boot_timeout) {
                         '-name', emulatorId, '-port', port, '-run'];
             // Don't wait for it to finish, since the emulator will probably keep running for a long time.
             child_process
-                .spawn('java', args, { stdio: 'inherit', detached: true })
+                .spawn('java', args, { stdio: 'inherit' })
                 .unref();
 
             // wait for emulator to start
