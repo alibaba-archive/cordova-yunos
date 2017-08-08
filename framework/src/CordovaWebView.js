@@ -38,26 +38,52 @@ class CordovaWebView extends WebView {
         this.appPlugin = null;
         this.window = null;
         this.page = null;
+        this.msgQueue = [];
+        this.inEvaluate = false;
+    }
+
+    pullOnce() {
+        if (this.msgQueue.length === 0) {
+            Log.D(TAG, 'All messages sent done');
+            return;
+        }
+        let topMsg = this.msgQueue.shift();
+        let result_ = topMsg.result;
+        let callbackId_ = topMsg.callbackId;
+        let jsStr =
+            'var bridgeImpl = cordova.require("cordova/yunos/bridgeimpl");' +
+            'bridgeImpl.onNodeMessageReceivedAgilWebView(__result__, __callbackId__);';
+        let resultStr = '\'';
+        resultStr += result_.toString();
+        resultStr += '\'';
+        Log.D(TAG, resultStr);
+        jsStr = jsStr.replace('__result__', resultStr);
+        let callbackIdStr = '\'';
+        callbackIdStr += callbackId_;
+        callbackIdStr += '\'';
+        jsStr = jsStr.replace('__callbackId__', callbackIdStr);
+        this.inEvaluate = true;
+        this.evaluateJavaScript(jsStr, (arg) => {
+            this.inEvaluate = false;
+            this.pullOnce();
+        });
     }
 
     initWebViewBridge() {
         // Node -> JS bridge
-        let self = this;
-        pluginManager.registerMsgListener(function(result, callbackId) {
-            let jsStr =
-                'setTimeout(function() {' +
-                '    var bridgeImpl = cordova.require("cordova/yunos/bridgeimpl");' +
-                '    bridgeImpl.onNodeMessageReceivedAgilWebView(__result__, __callbackId__);' +
-                '}, 0);';
-            let resultStr = '\'';
-            resultStr += result.toString();
-            resultStr += '\'';
-            jsStr = jsStr.replace('__result__', resultStr);
-            let callbackIdStr = '\'';
-            callbackIdStr += callbackId;
-            callbackIdStr += '\'';
-            jsStr = jsStr.replace('__callbackId__', callbackIdStr);
-            self.evaluateJavaScript(jsStr);
+        pluginManager.registerMsgListener((result, callbackId) => {
+            let msg = {result: result, callbackId: callbackId};
+            if (this.inEvaluate === true) {
+                Log.D(TAG, 'Bridge is busy, push to queue');
+                this.msgQueue.push(msg);
+                // Waiting for sending to JS
+                return false;
+            } else {
+                this.msgQueue.push(msg);
+                this.pullOnce();
+                // Sending to JS ongoing
+                return true;
+            }
         });
     }
 
@@ -74,10 +100,7 @@ class CordovaWebView extends WebView {
                     return;
                 }
                 try {
-                    Log.V(TAG, 'Start parsing args from DOM:', service, ':', action);
-                    Log.V(TAG, 'argsJson: ' + argsJson);
                     args = JSON.parse(argsJson);
-                    Log.V(TAG, 'args: ' + args);
                 } catch(e) {
                     Log.E(TAG, 'Failed to parse args from DOM: ' + e);
                 }

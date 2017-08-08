@@ -190,14 +190,17 @@ class PluginManager {
         this._retMsgListener = listener;
     }
 
-    // TODO: Use message queue if needed
+    /**
+     * return true:  result has been sent to JS
+     *        false: Native -> JS bridge is busy, no waiting
+     */
     sendPluginResult(result, callbackId) {
         if (this._retMsgListener === null) {
             Log.E(TAG, 'No Message Listener registered');
             return;
         }
         Log.V(TAG, 'Send plugin result for', callbackId);
-        this._retMsgListener(result, callbackId);
+        return this._retMsgListener(result, callbackId);
     }
 
     shouldAllowRequest(url) {

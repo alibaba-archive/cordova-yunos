@@ -53,7 +53,7 @@ class CallbackContext {
 
     sendPluginResult(result) {
         const PluginManager = require('./PluginManager');
-        PluginManager.getInstance().sendPluginResult(result, this._callbackId);
+        return PluginManager.getInstance().sendPluginResult(result, this._callbackId);
     }
 }
 
