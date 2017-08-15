@@ -461,7 +461,7 @@ function uint8ToBase64(rawData) {
 
 });
 
-// file: D:/cygwin64/home/xianghong.jxh/cordova-yunos/cordova-js-src/builder.js
+// file: /Users/guangzhen/Desktop/cordova/cordova-yunos/cordova-js-src/builder.js
 define("cordova/builder", function(require, exports, module) {
 
 /*
@@ -853,7 +853,7 @@ module.exports = channel;
 
 });
 
-// file: D:/cygwin64/home/xianghong.jxh/cordova-yunos/cordova-js-src/exec.js
+// file: /Users/guangzhen/Desktop/cordova/cordova-yunos/cordova-js-src/exec.js
 define("cordova/exec", function(require, exports, module) {
 
 /*jslint sloppy:true, plusplus:true*/
@@ -1380,7 +1380,7 @@ exports.reset();
 
 });
 
-// file: D:/cygwin64/home/xianghong.jxh/cordova-yunos/cordova-js-src/platform.js
+// file: /Users/guangzhen/Desktop/cordova/cordova-yunos/cordova-js-src/platform.js
 define("cordova/platform", function(require, exports, module) {
 
 const BACK_KEYCODE = 27;
@@ -1482,7 +1482,7 @@ function onMessageFromNative(msg) {
 
 });
 
-// file: D:/cygwin64/home/xianghong.jxh/cordova-yunos/cordova-js-src/plugin/yunos/app.js
+// file: /Users/guangzhen/Desktop/cordova/cordova-yunos/cordova-js-src/plugin/yunos/app.js
 define("cordova/plugin/yunos/app", function(require, exports, module) {
 
 var exec = require('cordova/exec');
@@ -1923,7 +1923,7 @@ utils.alert = function(msg) {
 
 });
 
-// file: D:/cygwin64/home/xianghong.jxh/cordova-yunos/cordova-js-src/yunos/TaskQueue.js
+// file: /Users/guangzhen/Desktop/cordova/cordova-yunos/cordova-js-src/yunos/TaskQueue.js
 define("cordova/yunos/TaskQueue", function(require, exports, module) {
 
 var resolvedPromise = typeof Promise === 'undefined' ? null : Promise.resolve();
@@ -1984,18 +1984,12 @@ module.exports = {
 
 });
 
-// file: D:/cygwin64/home/xianghong.jxh/cordova-yunos/cordova-js-src/yunos/bridgeimpl.js
+// file: /Users/guangzhen/Desktop/cordova/cordova-yunos/cordova-js-src/yunos/bridgeimpl.js
 define("cordova/yunos/bridgeimpl", function(require, exports, module) {
 
 var isDomono = yunos !== undefined && yunos.require !== undefined;
 var base64 = require('cordova/base64');
 var utils = require('cordova/utils');
-
-// This should keep same with PluginResult's MessageType
-const MessageType = {
-    MESSAGE_TYPE_ARRAYBUFFER: 1,
-    MESSAGE_TYPE_STRING:2
-};
 
 module.exports = {
     pluginManager: undefined,
@@ -2004,6 +1998,12 @@ module.exports = {
     send: function(service, action, callbackId, args) {
         // If args is not provided, default to an empty array
         args = args || [];
+        // Process any ArrayBuffers in the args into a string.
+        for (let i in args) {
+            if (utils.typeName(args[i]) === 'ArrayBuffer') {
+                args[i] = base64.fromArrayBuffer(args[i]);
+            }
+        }
         pluginManager.exec(service, action, callbackId, args);
     },
 
@@ -2044,15 +2044,8 @@ module.exports = {
                 console.error('No _cordovaNodeBridge founded');
                 return;
             }
-            // Process any ArrayBuffers in the args into a string.
-            for (let i in args) {
-                if (utils.typeName(args[i]) === 'ArrayBuffer') {
-                    args[i] = base64.fromArrayBuffer(args[i]);
-                }
-            }
-            var argsJson = JSON.stringify(args);
-            window._cordovaNodeBridge.exec(service, action, callbackId, argsJson);
-        }
+            window._cordovaNodeBridge.exec(service, action, callbackId, JSON.stringify(args));
+        };
         // Init webview bridge
         window._cordovaNodeBridge.exec('', 'gap_init:', '', '');
     },
@@ -2072,29 +2065,23 @@ module.exports = {
             console.error(e);
             return;
         }
-        switch (resultJson.messageType) {
-            case MessageType.MESSAGE_TYPE_ARRAYBUFFER:
-                resultJson.retValue = base64.toArrayBuffer(resultJson.retValue);
-                break;
-            case MessageType.MESSAGE_TYPE_STRING:
-                var arrayBuffer = base64.toArrayBuffer(resultJson.retValue);
-                var view = new Uint8Array(arrayBuffer);
-                var decoder = new TextDecoder();
-                resultJson.retValue = decoder.decode(view);
-                break;
-            default:
-                break;
-        }
         this.onNodeMessageReceived(resultJson, callbackId);
     }
 };
 
 });
 
-// file: D:/cygwin64/home/xianghong.jxh/cordova-yunos/cordova-js-src/yunos/bridgeproxy.js
+// file: /Users/guangzhen/Desktop/cordova/cordova-yunos/cordova-js-src/yunos/bridgeproxy.js
 define("cordova/yunos/bridgeproxy", function(require, exports, module) {
 
 var cordova = require('cordova');
+var base64 = require('cordova/base64');
+
+// This should keep same with PluginResult's MessageType
+const MessageType = {
+    MESSAGE_TYPE_ARRAYBUFFER: 1,
+    MESSAGE_TYPE_STRING:2
+};
 
 module.exports = {
     bridgeImpl: undefined,
@@ -2123,6 +2110,19 @@ module.exports = {
     onNodeMessageReceived: function(result, callbackId) {
         function callback(result, callbackId) {
             result = result || {};
+            switch (result.messageType) {
+                case MessageType.MESSAGE_TYPE_ARRAYBUFFER:
+                    result.retValue = base64.toArrayBuffer(result.retValue);
+                    break;
+                case MessageType.MESSAGE_TYPE_STRING:
+                    var arrayBuffer = base64.toArrayBuffer(result.retValue);
+                    var view = new Uint8Array(arrayBuffer);
+                    var decoder = new TextDecoder();
+                    result.retValue = decoder.decode(view);
+                    break;
+                default:
+                    break;
+            }
             var status = result.status || cordova.callbackStatus.ERROR;
             var retValue = (result.retValue === undefined) ? '': result.retValue;
             var keepCallback = result.keepCallback || false;
@@ -2137,12 +2137,13 @@ module.exports = {
         // Post result to handler instead of calling handler's callback directly
         var TaskQueue = require('cordova/yunos/TaskQueue');
         TaskQueue.post(new TaskQueue.Task(callback, result, callbackId));
+        return true;
     }
 };
 
 });
 
-// file: D:/cygwin64/home/xianghong.jxh/cordova-yunos/cordova-js-src/yunos/pluginmanagerproxy.js
+// file: /Users/guangzhen/Desktop/cordova/cordova-yunos/cordova-js-src/yunos/pluginmanagerproxy.js
 define("cordova/yunos/pluginmanagerproxy", function(require, exports, module) {
 
 var bridgeProxy = require('cordova/yunos/bridgeproxy');

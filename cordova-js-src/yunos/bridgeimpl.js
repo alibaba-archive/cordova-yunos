@@ -23,12 +23,6 @@ var isDomono = yunos !== undefined && yunos.require !== undefined;
 var base64 = require('cordova/base64');
 var utils = require('cordova/utils');
 
-// This should keep same with PluginResult's MessageType
-const MessageType = {
-    MESSAGE_TYPE_ARRAYBUFFER: 1,
-    MESSAGE_TYPE_STRING:2
-};
-
 module.exports = {
     pluginManager: undefined,
     onNodeMessageReceived: undefined,
@@ -36,6 +30,12 @@ module.exports = {
     send: function(service, action, callbackId, args) {
         // If args is not provided, default to an empty array
         args = args || [];
+        // Process any ArrayBuffers in the args into a string.
+        for (let i in args) {
+            if (utils.typeName(args[i]) === 'ArrayBuffer') {
+                args[i] = base64.fromArrayBuffer(args[i]);
+            }
+        }
         pluginManager.exec(service, action, callbackId, args);
     },
 
@@ -76,15 +76,8 @@ module.exports = {
                 console.error('No _cordovaNodeBridge founded');
                 return;
             }
-            // Process any ArrayBuffers in the args into a string.
-            for (let i in args) {
-                if (utils.typeName(args[i]) === 'ArrayBuffer') {
-                    args[i] = base64.fromArrayBuffer(args[i]);
-                }
-            }
-            var argsJson = JSON.stringify(args);
-            window._cordovaNodeBridge.exec(service, action, callbackId, argsJson);
-        }
+            window._cordovaNodeBridge.exec(service, action, callbackId, JSON.stringify(args));
+        };
         // Init webview bridge
         window._cordovaNodeBridge.exec('', 'gap_init:', '', '');
     },
@@ -103,19 +96,6 @@ module.exports = {
             console.error('Parse node return message failed:');
             console.error(e);
             return;
-        }
-        switch (resultJson.messageType) {
-            case MessageType.MESSAGE_TYPE_ARRAYBUFFER:
-                resultJson.retValue = base64.toArrayBuffer(resultJson.retValue);
-                break;
-            case MessageType.MESSAGE_TYPE_STRING:
-                var arrayBuffer = base64.toArrayBuffer(resultJson.retValue);
-                var view = new Uint8Array(arrayBuffer);
-                var decoder = new TextDecoder();
-                resultJson.retValue = decoder.decode(view);
-                break;
-            default:
-                break;
         }
         this.onNodeMessageReceived(resultJson, callbackId);
     }

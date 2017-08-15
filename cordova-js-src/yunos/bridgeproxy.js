@@ -20,6 +20,13 @@
 */
 
 var cordova = require('cordova');
+var base64 = require('cordova/base64');
+
+// This should keep same with PluginResult's MessageType
+const MessageType = {
+    MESSAGE_TYPE_ARRAYBUFFER: 1,
+    MESSAGE_TYPE_STRING:2
+};
 
 module.exports = {
     bridgeImpl: undefined,
@@ -48,6 +55,19 @@ module.exports = {
     onNodeMessageReceived: function(result, callbackId) {
         function callback(result, callbackId) {
             result = result || {};
+            switch (result.messageType) {
+                case MessageType.MESSAGE_TYPE_ARRAYBUFFER:
+                    result.retValue = base64.toArrayBuffer(result.retValue);
+                    break;
+                case MessageType.MESSAGE_TYPE_STRING:
+                    var arrayBuffer = base64.toArrayBuffer(result.retValue);
+                    var view = new Uint8Array(arrayBuffer);
+                    var decoder = new TextDecoder();
+                    result.retValue = decoder.decode(view);
+                    break;
+                default:
+                    break;
+            }
             var status = result.status || cordova.callbackStatus.ERROR;
             var retValue = (result.retValue === undefined) ? '': result.retValue;
             var keepCallback = result.keepCallback || false;
@@ -62,5 +82,6 @@ module.exports = {
         // Post result to handler instead of calling handler's callback directly
         var TaskQueue = require('cordova/yunos/TaskQueue');
         TaskQueue.post(new TaskQueue.Task(callback, result, callbackId));
+        return true;
     }
 };
