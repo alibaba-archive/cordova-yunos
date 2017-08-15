@@ -163,6 +163,8 @@ class CordovaWebView extends WebView {
             pluginManager.page = page;
             // Set webview to PluginManager
             pluginManager.webview = self;
+            // Set log name and level
+            Log.setLogLevel(config.name, config.getPreferenceValue('LogLevel'));
             // Add default yunos core plugin
             pluginManager.addService('CoreYunOS', 'CordovaLib/CoreYunOS', true);
             // Initialize custom plugins
@@ -181,7 +183,7 @@ class CordovaWebView extends WebView {
                 self.settings.errorPage = Path.join('res', 'asset', errorUrl);
             }
             // Init fullscreen and orientation
-            let fullscreen = config.getPreferenceValue('fullscreen', false);
+            let fullscreen = config.getPreferenceValue('fullscreen', 'false');
             let orientation = config.getPreferenceValue('orientation', 'portrait');
             self.initWindow(fullscreen, orientation);
             // Load the content path with agil-webview mode

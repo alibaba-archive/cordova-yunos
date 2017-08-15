@@ -22,12 +22,10 @@
 const Page = require('yunos/page/Page');
 
 const CordovaWebView = require('../CordovaLib/CordovaWebView');
-const Log = require('../CordovaLib/Log');
 const TAG = 'CordovaEmbedded';
 
 class CordovaEmbedded extends Page {
     onCreate() {
-        Log.setLogLevel('MyEmbeddedCordovaApp', 'VERBOSE');
         this._cordovaWebView = new CordovaWebView(this);
         // Set log name and level
         this._cordovaWebView.width = this.window.width;

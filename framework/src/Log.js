@@ -41,8 +41,9 @@ function generateArgs(args) {
 class Log {
     static setLogLevel(appName, level) {
         Log.APP_NAME = appName + ':';
-        level = level || '';
-        console.log('myapp:' + level);
+        level = level || 'ERROR';
+        Log.V('Logger', 'AppName:' + appName);
+        Log.V('Logger', 'Level:' + level);
         switch (level) {
             case 'VERBOSE':
                 Log.LOG_LEVEL = VERBOSE;
@@ -61,7 +62,7 @@ class Log {
                 Log.LOG_LEVEL = ERROR;
                 break;
             default:
-                log.E(APP_NAME, 'Unknown loglevel:' + level);
+                log.E(Log.APP_NAME, 'Unknown loglevel:' + level);
         }
     }
 
@@ -126,7 +127,7 @@ class Log {
     }
 }
 
-Log.LOG_LEVEL = ERROR;
-Log.APP_NAME = 'CordovaYunOS:';
+Log.LOG_LEVEL = VERBOSE;
+Log.APP_NAME = 'CordovaYunOSLogger:';
 
 module.exports = Log;
