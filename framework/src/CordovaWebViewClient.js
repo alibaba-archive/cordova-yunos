@@ -66,6 +66,11 @@ class CordovaWebViewClient extends WebViewClient {
     }
 
     shouldOverrideUrlLoading(webView, url) {
+        if (url === undefined || url === null) {
+            Log.E(TAG, 'shouldOverrideUrlLoading: url is undefined');
+            // Let webengine treat this error.
+            return false;
+        }
         // Give plugins the chance to handle the url
         if (pluginManager.onOverrideUrlLoading(url)) {
             return true;

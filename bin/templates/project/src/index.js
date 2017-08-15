@@ -103,7 +103,7 @@ class CordovaApp extends H5Page {
     }
 
     shouldOverrideUrlLoading(url) {
-        return this.client.shouldOverrideUrlLoading(url);
+        return this.client.shouldOverrideUrlLoading(this, url);
     }
 
     setButtonPlumbedToJs(button, override) {
