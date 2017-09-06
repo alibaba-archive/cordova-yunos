@@ -40,6 +40,7 @@ class CordovaWebView extends WebView {
         this.page = null;
         this.msgQueue = [];
         this.inEvaluate = false;
+        this.destroyCalled = false;
     }
 
     pullOnce() {
@@ -72,6 +73,10 @@ class CordovaWebView extends WebView {
     initWebViewBridge() {
         // Node -> JS bridge
         pluginManager.registerMsgListener((result, callbackId) => {
+            if (this.destroyCalled === true) {
+                Log.D(TAG, 'WebView destroyed, no need send message to DOM');
+                return;
+            }
             let msg = {result: result, callbackId: callbackId};
             if (this.inEvaluate === true) {
                 Log.D(TAG, 'Bridge is busy, push to queue');
@@ -228,6 +233,7 @@ class CordovaWebView extends WebView {
 
     // The event is fired when the page instance is destroyed.
     onDestroy() {
+        this.destroyCalled = true;
         pluginManager.onDestroy();
     }
 
