@@ -187,7 +187,7 @@ class CordovaWebView extends WebView {
             let orientation = config.getPreferenceValue('orientation', 'portrait');
             self.initWindow(fullscreen, orientation);
             // Load the content path with agil-webview mode
-            self.setUrl(config.contentPath);
+            self.setUrl(config.package, config.contentPath);
         }
         function error(msg) {
             Log.E(TAG, 'Failed to get content src:');
@@ -196,9 +196,9 @@ class CordovaWebView extends WebView {
         ConfigHelper.readConfig(success, error);
     }
 
-    setUrl(url) {
+    setUrl(pkg, url) {
         let href = url || 'index.html';
-        this.url = Path.join('res', 'asset', href);
+        this.url = 'page://' + pkg + '/asset/res/asset/' + href;
     }
 
     onOrientationChange(orientation) {

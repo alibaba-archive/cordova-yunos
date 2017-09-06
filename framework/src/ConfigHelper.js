@@ -65,6 +65,11 @@ function Config(data) {
         return retName;
     }
 
+    function loadPackage(node) {
+        let id = node.attribute('id').toString();
+        return id;
+    }
+
     function loadAllowNavigations(node) {
         let allowedNavigations = [];
         // contents
@@ -118,6 +123,7 @@ function Config(data) {
     this.features = loadFeatures(node);
     this.contentPath = loadContentPath(node);
     this.name = loadName(node);
+    this.package = loadPackage(node);
     this.allowedNavigations = loadAllowNavigations(node);
     this.allowedIntents = loadAllowIntents(node);
     this.allowedRequests = loadAllowRequests(node);

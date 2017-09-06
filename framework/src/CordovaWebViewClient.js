@@ -66,6 +66,10 @@ class CordovaWebViewClient extends WebViewClient {
     }
 
     shouldOverrideUrlLoading(webView, url) {
+        // API compatible with previousl version
+        if (typeof webView === 'string') {
+            url = webView;
+        }
         if (url === undefined || url === null) {
             Log.E(TAG, 'shouldOverrideUrlLoading: url is undefined');
             // Let webengine treat this error.
@@ -85,6 +89,10 @@ class CordovaWebViewClient extends WebViewClient {
     }
 
     onPageStarted(webView, url) {
+        // API compatible with previousl version
+        if (typeof webView === 'string') {
+            url = webView;
+        }
         this._timer = setTimeout(function() {
             let data = {
                 errorCode: -6,
@@ -101,6 +109,10 @@ class CordovaWebViewClient extends WebViewClient {
     }
 
     onLoadVisuallyCommitted(webView, url) {
+        // API compatible with previousl version
+        if (typeof webView === 'string') {
+            url = webView;
+        }
         pluginManager.onLoadVisuallyCommitted(url);
     }
 

@@ -21,6 +21,8 @@
 
 const Page = require('yunos/page/Page');
 
+process.env.CAFUI2 = true;
+
 const CordovaWebView = require('../CordovaLib/CordovaWebView');
 const TAG = 'CordovaEmbedded';
 
