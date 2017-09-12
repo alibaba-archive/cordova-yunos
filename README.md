@@ -1,4 +1,8 @@
 <!--
+   Copyright (C) 2010-2017 Alibaba Group Holding Limited
+-->
+
+<!--
 #
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -25,12 +29,6 @@ Cordova YunOS
 Introduction
 ------------
 
-[YunOS](https://www.yunos.com) is developed by Alibaba, It is designed to allow HTML5 applications to integrate directly with the device's hardware using JavaScript.
+[YunOS](https://www.yunos.com) is developed by Alibaba, Cordova YunOS is designed to allow HTML5 applications to integrate directly with the device's hardware using JavaScript.
 
-
-cordova-yunos allows developers to use the cross platform APIs in Cordova to target the YunOS. Most APIs are just proxied to the matching YunOS API calls.
-
-Prerequisties
-==============
-
-For more detailed info please visit [wiki](http://docs.alibaba-inc.com/display/yunostianmu/Cordova+YunOS+support)
+It allows developers to use the cross platform APIs in Cordova to target the YunOS. Most APIs are just proxied to the matching YunOS API calls.

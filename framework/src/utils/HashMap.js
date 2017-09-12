@@ -1,6 +1,8 @@
-"use strict";
+/**
+ * Copyright (C) 2010-2017 Alibaba Group Holding Limited
+ */
 
-// const TAG = "MMS/HashMap";
+"use strict";
 
 class HashMap {
 

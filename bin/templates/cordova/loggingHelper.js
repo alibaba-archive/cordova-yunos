@@ -1,3 +1,7 @@
+/**
+ * Copyright (C) 2010-2017 Alibaba Group Holding Limited
+ */
+
 var CordovaLogger = require('cordova-common').CordovaLogger;
 
 module.exports = {

@@ -1,3 +1,7 @@
+/**
+ * Copyright (C) 2010-2017 Alibaba Group Holding Limited
+ */
+
 /*
  *
  * Copyright 2013 Anis Kadri

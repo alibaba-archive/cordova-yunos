@@ -1,5 +1,9 @@
 #!/usr/bin/env node
 
+/**
+ * Copyright (C) 2010-2017 Alibaba Group Holding Limited
+ */
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,7 +22,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
- 
+
 var fs = require('fs'),
     shjs = require('shelljs'),
     path = require('path'),

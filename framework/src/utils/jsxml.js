@@ -1,3 +1,7 @@
+/**
+ * Copyright (C) 2010-2017 Alibaba Group Holding Limited
+ */
+
 // jscs:disable
 /* jshint camelcase: false, unused: vars, quotmark: false, forin: false, asi: false */
 /**
