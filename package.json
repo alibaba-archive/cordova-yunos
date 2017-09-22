@@ -42,7 +42,15 @@
     "contributors": [
         {
             "name": "Guangzhen Li",
-            "email": "guangzhen.li@alibaba.com"
+            "email": "guangzhen.li@alibaba-inc.com"
+        },
+        {
+            "name": "Jessica Zhang",
+            "email": "jessica.zjx@alibaba-inc.com"
+        },
+        {
+            "name": "Xianghong Jia",
+            "email": "xianghong.jxh@alibaba-inc.com"
         }
     ],
     "license": "Apache-2.0"
